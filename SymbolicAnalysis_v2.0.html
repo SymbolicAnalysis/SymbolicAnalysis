@@ -1,0 +1,1979 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RR Poincare Symbolic Analyzer 2.0</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<!-- <script src="./plotly-2.35.2.min.js"></script> -->
+<style>
+:root{--bg:#eef3f7;--card:#fff;--line:#c8d5e0;--txt:#1d2a34;--mut:#5f7485;--acc:#0f5f99;--ok:#1d7043;--warn:#9b6700;--err:#b53a34}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;font-family:Segoe UI,Aptos,Noto Sans,sans-serif;color:var(--txt);background:linear-gradient(180deg,#f6f9fc,var(--bg))}
+.app{width:min(1560px,96vw);margin:12px auto;display:grid;grid-template-columns:430px 1fr;gap:10px;min-height:calc(100vh - 24px)}
+.sidebar{display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 24px);overflow:auto;padding-right:4px}
+.panel,.plot{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(12,35,53,.08)}
+.hero{background:linear-gradient(135deg,#0f5f99,#13446e);color:#edf7ff;border-color:#2a6b9f}
+.hero h1{font-size:1.05rem;margin:0 0 6px}.hero p{margin:0;font-size:.82rem;opacity:.95}
+h2{font-size:.94rem;margin:0 0 8px}h3{font-size:.84rem;margin:0 0 6px;color:#36536a}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.grid2,.grid3,.grid4,.grid5{display:grid;gap:7px}.grid2{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:repeat(3,1fr)}.grid4{grid-template-columns:repeat(4,1fr)}.grid5{grid-template-columns:repeat(5,1fr)}
+.field{display:grid;gap:3px;min-width:0}.field label{font-size:.76rem;color:#405b70}
+input,select,textarea{width:100%;border:1px solid #b6c8d8;border-radius:8px;background:#fcfeff;color:var(--txt);padding:6px 7px;font-size:.83rem;outline:none}
+input[type=checkbox]{width:16px;height:16px;padding:0;margin:0;justify-self:start;align-self:center;accent-color:var(--acc)}
+textarea{min-height:82px;resize:vertical;font-family:Consolas,monospace;font-size:.79rem}
+input:focus,select:focus,textarea:focus{border-color:#3d79ab;box-shadow:0 0 0 3px rgba(61,121,171,.16)}
+input[type=range]{margin:0;accent-color:var(--acc)}
+.btn{border:0;border-radius:8px;background:linear-gradient(135deg,var(--acc),#0d4e80);color:#eff8ff;padding:7px 9px;font-size:.8rem;font-weight:600;cursor:pointer}
+.btn.s{background:linear-gradient(135deg,#5d7383,#4a6070)}.btn.g{background:linear-gradient(135deg,#1f7a3e,#1a6433)}.btn.w{background:linear-gradient(135deg,#a26d00,#835800)}.btn.d{background:linear-gradient(135deg,#b53a34,#922e2a)}
+.dev-toggle[aria-pressed="true"]{background:linear-gradient(135deg,#1f7a3e,#1a6433)}
+.status{border:1px solid #cfdce8;border-radius:9px;background:#f7fbff;padding:7px 8px;font-size:.79rem;color:#2c4a5d}.status.ok{border-color:#c1decb;background:#eef9f2;color:var(--ok)}.status.warn{border-color:#e7d7b5;background:#fff9ef;color:var(--warn)}.status.bad{border-color:#e7c3c0;background:#fff3f2;color:var(--err)}
+.rule{border:1px solid #d0dde8;border-radius:9px;padding:7px;background:#fbfdff}.rule h4{margin:0 0 5px;font-size:.8rem;color:#2f5067}
+.priority{display:grid;gap:6px}.pitem{display:flex;justify-content:space-between;align-items:center;border:1px solid #d0dde8;border-radius:8px;background:#f8fcff;padding:4px 6px;font-size:.79rem}.pitem button{border:1px solid #b6c9d8;background:#fff;border-radius:6px;padding:1px 6px;font-size:.72rem;cursor:pointer}
+.legend{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.lt{display:flex;gap:5px;align-items:center;border:1px solid #d0dde8;border-radius:7px;background:#f8fcff;padding:3px 4px;font-size:.76rem}.dot{width:10px;height:10px;border-radius:50%}
+.main{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(360px,1fr);gap:10px;align-items:start;min-width:0}.main-column{display:flex;flex-direction:column;gap:10px;min-width:0}.plot{min-width:0}#tachogram{height:205px}#poincare{height:620px}
+.developer-note{flex:1;min-width:220px}
+.dev-panel{display:none}
+body.dev-mode .dev-panel{display:block}
+.segment-analysis .table{max-height:min(72vh,860px)}
+.segment-analysis th.col-seg,.segment-analysis td.col-seg{width:1%;min-width:40px;text-align:center}
+.segment-analysis th.col-state,.segment-analysis td.col-state{width:1%;min-width:88px;max-width:96px;text-align:center;white-space:normal;line-height:1.15}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:7px}.m{border:1px solid #cfdae6;background:#f8fcff;border-radius:9px;padding:7px;font-size:.77rem;color:#426078}.m strong{display:block;margin-top:3px;font-size:1rem;color:#1a3850}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:3px 8px;font-size:.76rem;background:#f8fcff}
+.trigram-summary{margin-top:8px;border:1px solid #d0dde8;border-radius:10px;background:#fbfdff;padding:8px}
+.trigram-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.trigram-caption{font-size:.74rem;color:var(--mut)}
+.trigram-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:5px;margin-top:6px}
+.trigram-item{min-width:0;border:1px solid #d0dde8;border-radius:7px;background:#f8fcff;padding:5px 6px}
+.trigram-token{font-family:Consolas,monospace;font-size:.88rem;font-weight:700;color:#1a3850}
+.trigram-meta{margin-top:2px;font-size:.7rem;color:var(--mut);line-height:1.2}
+.trigram-empty{font-size:.76rem;color:var(--mut)}
+.table{max-height:220px;overflow:auto}table{width:100%;border-collapse:collapse;font-size:.77rem;border:1px solid #d2dee9}th,td{border-bottom:1px solid #e2ebf2;padding:4px 6px;text-align:left;white-space:nowrap}thead th{background:#eef5fb;color:#35536a;font-size:.73rem}.table thead abbr[title]{text-decoration:none;cursor:help;border-bottom:0}tr:last-child td{border-bottom:0}
+.clickable-rows tbody tr{cursor:pointer}.clickable-rows tbody tr:hover{background:#f2f8ff}.clickable-rows tbody tr.selected{background:#e0eefc}
+.window-plot{height:280px}
+.hint{font-size:.74rem;color:var(--mut);padding-left:6px}
+.mono{font-family:Consolas,monospace}
+.profile-plot{height:320px}
+.meta-list{display:grid;gap:6px}
+.meta-row{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid #d0dde8;border-radius:8px;background:#f8fcff;padding:5px 7px;font-size:.76rem}
+.meta-row .label{color:#405b70}
+.meta-row .value{font-weight:600;color:#1a3850;text-align:right}
+.point-inspector{display:grid;gap:8px}.point-inspector .empty{color:var(--mut);font-size:.82rem;line-height:1.45;padding:4px 2px}.point-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.point-value{border:1px solid #d0dde8;border-radius:9px;background:#f8fcff;padding:7px;min-width:0}.point-value span{display:block;font-size:.7rem;color:var(--mut);margin-bottom:3px}.point-value strong{display:block;font-size:.88rem;color:#1a3850;overflow-wrap:anywhere}.tetra-list{display:grid;gap:7px;margin-top:2px}.tetra-card{border:1px solid #d0dde8;border-radius:9px;background:#fbfdff;padding:8px}.tetra-token{font-family:Consolas,monospace;font-size:1.18rem;font-weight:700;letter-spacing:.12em;color:#1a3850}.tetra-token mark{background:#ffe58a;color:#172b3a;border:1px solid #d5a900;border-radius:4px;padding:0 2px}.tetra-caption{font-size:.72rem;color:var(--mut);margin-top:4px}.category-badge{display:inline-flex;align-items:center;gap:6px}.category-badge .dot{flex:0 0 auto}
+.copyright{width:min(1560px,96vw);margin:0 auto 12px;padding:2px 10px;text-align:center;font-size:.68rem;line-height:1.4;color:var(--mut)}
+.copyright a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor}.copyright a:hover{color:var(--acc)}
+@media (max-width:1200px){.app{grid-template-columns:1fr}.sidebar{max-height:none}.main{grid-template-columns:1fr}#poincare{height:560px}.segment-analysis .table{max-height:420px}}@media (max-width:760px){.grid3,.grid4,.grid5,.legend{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <section class="panel hero">
+      <h1>Poincare + local symbolic tachogram 2.0</h1>
+      <p>Single HTML file, interpretable T/C/B/G/R/L/U rules, dual-profile Auto-C validation, editable priority, and export.</p>
+    </section>
+
+    <section class="panel">
+      <h2>1) Input and parsing</h2>
+      <div class="row" style="margin-bottom:7px"><input id="fileInput" type="file" accept=".txt,.csv,.tsv,.dat"><button id="btnProcess" class="btn">Process</button></div>
+      <div class="grid2" style="margin-bottom:7px">
+        <div class="field"><label for="sepSelect">Separator</label><select id="sepSelect"><option value="auto" selected>Auto</option><option value="comma">Comma</option><option value="semicolon">Semicolon</option><option value="tab">Tab</option><option value="space">Spaces</option><option value="single">1 column</option></select></div>
+        <div class="field"><label for="alignOffset">Label-to-RR alignment</label><select id="alignOffset"><option value="0" selected>label[i] -> RR[i]</option><option value="-1">label[i-1] -> RR[i]</option><option value="1">label[i+1] -> RR[i]</option></select></div>
+      </div>
+      <div class="grid3" style="margin-bottom:7px">
+        <div class="field"><label for="nnMode">NN filter</label><select id="nnMode"><option value="strict" selected>Strict: N preceded by N</option><option value="lax">Lax: N only</option><option value="none">No NN filter</option></select></div>
+        <div class="field"><label><input id="rrRangeEnabled" type="checkbox" checked> Filter out-of-range RR</label><div class="status" style="padding:4px 6px">Before building pairs</div></div>
+        <div class="field"><label for="rrMin">RR range (ms)</label><div class="row"><input id="rrMin" type="number" value="200" min="1"><input id="rrMax" type="number" value="5000" min="1"></div></div>
+      </div>
+      <div id="inputInfo" class="status">No data.</div>
+    </section>
+
+    <section class="panel dev-panel">
+      <h2>2) Visualization</h2>
+      <div class="grid3" style="margin-bottom:7px">
+        <div class="field"><label for="xMode">Tachogram X-axis</label><select id="xMode"><option value="index" selected>Index</option><option value="time">Cumulative time (s)</option></select></div>
+        <div class="field"><label for="pointSize">Point size</label><input id="pointSize" type="range" min="2" max="12" value="4"><div id="pointSizeVal" class="status" style="padding:4px 6px">4</div></div>
+        <div class="field"><label for="pointOpacity">Opacity</label><input id="pointOpacity" type="range" min="0.1" max="1" step="0.05" value="0.65"><div id="pointOpacityVal" class="status" style="padding:4px 6px">0.65</div></div>
+      </div>
+      <div class="grid4" style="margin-bottom:7px">
+        <div class="field"><label for="axisMode">Axis range</label><select id="axisMode"><option value="auto">Auto percentile</option><option value="manual" selected>Manual</option></select></div>
+        <div class="field"><label for="axisPct">Percentile</label><input id="axisPct" type="range" min="90" max="100" step="0.1" value="99.5"><div id="axisPctVal" class="status" style="padding:4px 6px">99.5</div></div>
+        <div class="field"><label for="axisMax">Manual max (ms)</label><input id="axisMax" type="number" value="2000" min="200"></div>
+        <div class="field"><label for="sampleLimit">Max plotted points</label><input id="sampleLimit" type="number" value="120000" min="5000" step="5000"></div>
+      </div>
+      <div class="grid2" style="margin-bottom:7px"><label><input id="showGuideRatios" type="checkbox" checked> 2x/3x/0.5x/0.33x guides</label><label><input id="colorTacByCat" type="checkbox" checked> Color tachogram by category</label></div>
+      <div class="row" style="margin-bottom:7px"><button id="btnRefreshView" class="btn s">Refresh view</button><button id="btnClearRange" class="btn s">Clear time filter</button><button id="btnResetZoom" class="btn s">Reset zoom</button></div>
+      <div class="field" style="margin-bottom:7px"><label>Show/hide categories</label><div id="catToggles" class="legend"></div></div>
+      <div id="rangeInfo" class="status">No active time filter.</div>
+    </section>
+
+    <section class="panel dev-panel">
+      <h2>3) Rules</h2>
+      <div class="status" style="margin-bottom:7px">Identity band: |y-x| <= max(base_ms, frac*min(x,y)). Default priority: C->T->L->G->B->R->U</div>
+      <div class="grid2">
+        <div class="rule"><h4>T</h4><div class="grid2"><label class="field"><span>Enabled</span><input id="t_enabled" type="checkbox" checked></label><label class="field"><span>min_fast</span><input id="t_min_fast" type="number" value="580"></label><label class="field"><span>id_base</span><input id="t_id_base" type="number" value="40"></label><label class="field"><span>id_frac</span><input id="t_id_frac" type="number" value="0.30" step="0.01"></label></div></div>
+        <div class="rule"><h4>C</h4><div class="grid2"><label class="field"><span>Enabled</span><input id="c_enabled" type="checkbox" checked></label><label class="field"><span>c_lo</span><input id="c_lo" type="number" value="580"></label><label class="field"><span>c_hi</span><input id="c_hi" type="number" value="820"></label><label class="field"><span>id_base</span><input id="c_id_base" type="number" value="60"></label><label class="field"><span>id_frac</span><input id="c_id_frac" type="number" value="0.30" step="0.01"></label><label class="field"><span>c_curve_amp</span><input id="c_curve_amp" type="number" value="120"></label><label class="field"><span>c_curve_pow</span><input id="c_curve_pow" type="number" value="1.6" step="0.1"></label><label class="field"><span>c_curve_lower_frac</span><input id="c_curve_lower_frac" type="number" value="0.20" step="0.01"></label><label class="field"><span>c_curve_upper_frac</span><input id="c_curve_upper_frac" type="number" value="0.2" step="0.01"></label><label class="field"><span>c_tip_extra</span><input id="c_tip_extra" type="number" value="60"></label></div></div>
+        <div class="rule"><h4>B</h4><div class="grid2"><label class="field"><span>Enabled</span><input id="b_enabled" type="checkbox" checked></label><label class="field"><span>Auto B/R from C</span><input id="b_auto_from_c" type="checkbox" checked></label><label class="field"><span>x_lo (default: 0.90 x c_lo)</span><input id="b_x_lo" type="number" value="522"></label><label class="field"><span>x_hi (default: 1.20 x c_hi)</span><input id="b_x_hi" type="number" value="984"></label></div><div class="hint" style="margin-top:5px">B is the ascending branch: x &lt; y inside [x_lo, x_hi]. C is assigned first, so C and B do not overlap operationally.</div></div>
+        <div class="rule"><h4>G</h4><div class="grid2"><label class="field"><span>Enabled</span><input id="g_enabled" type="checkbox" checked></label><label class="field"><span>g_min</span><input id="g_min" type="number" value="1260"><div class="row"><button id="btnUseGMinSuggest" type="button" class="btn s">Use suggestion</button><span id="g_min_suggest" class="hint"></span></div></label><label class="field"><span>g_rel</span><input id="g_rel" type="number" value="1.45" step="0.01"></label></div></div>
+        <div class="rule"><h4>R</h4><div class="grid2"><label class="field"><span>Enabled</span><input id="r_enabled" type="checkbox" checked></label><label class="field"><span>x_min</span><input id="r_x_min" type="number" value="580"></label><label class="field"><span>x_max</span><input id="r_x_max" type="number" placeholder="empty = no limit"></label><label class="field"><span>y_min</span><input id="r_y_min" type="number" value="522" placeholder="empty = no limit"></label><label class="field"><span>r_lo</span><input id="r_lo" type="number" value="0.73" step="0.01"></label><label class="field"><span>r_hi</span><input id="r_hi" type="number" value="0.30" step="0.01"></label></div></div>
+        <div class="rule"><h4>L</h4><div class="grid2"><label class="field"><span>Enabled</span><input id="l_enabled" type="checkbox" checked></label><label class="field"><span>guard_min</span><input id="l_guard_min" type="number" value="820"></label><label class="field"><span>id_base</span><input id="l_id_base" type="number" value="60"></label><label class="field"><span>id_frac</span><input id="l_id_frac" type="number" value="0.30" step="0.01"></label></div></div>
+      </div>
+      <div class="row" style="margin-top:7px"><button id="btnApplyRules" class="btn">Apply rules</button><button id="btnResetRules" class="btn s">Restore defaults</button></div>
+    </section>
+
+    <section class="panel dev-panel">
+      <h2>3b) Auto-C</h2>
+      <div class="status" style="margin-bottom:7px">The automatic C range is estimated with the main 1D profile over <span class="mono">x = RRn</span>. Its default short-&gt;long candidate threshold is 14%. A second profile with a fixed 45% threshold validates branch strength. Only the main profile supplies <span class="mono">c_lo/c_hi</span>, and operational C exists only when both profiles are robust. The symbolic C classification still uses <span class="mono">near-identity</span> and <span class="mono">u = (x+y)/2</span>; <span class="mono">c_hi</span> marks the beginning of the right cap, not its strict geometric end.</div>
+      <details open>
+        <summary style="cursor:pointer;font-weight:600;color:#2f5067">Main short-&gt;long profile parameters</summary>
+        <div class="grid5" style="margin-top:7px">
+          <div class="field"><label for="autoC_x_search_min">x_search_min</label><input id="autoC_x_search_min" type="number" value="350" min="0"></div>
+          <div class="field"><label for="autoC_x_search_max">x_search_max</label><input id="autoC_x_search_max" type="number" value="1050" min="0"></div>
+          <div class="field"><label for="autoC_jump_ratio_min">jump_ratio_min</label><input id="autoC_jump_ratio_min" type="number" value="0.14" min="0" step="0.01"></div>
+          <div class="field"><label for="autoC_x_step">x_step</label><input id="autoC_x_step" type="number" value="20" min="1"></div>
+          <div class="field"><label for="autoC_smoothing_bins">smoothing_bins</label><input id="autoC_smoothing_bins" type="number" value="3" min="1"></div>
+          <div class="field"><label for="autoC_threshold_on">threshold_on</label><input id="autoC_threshold_on" type="number" value="0.07" min="0" max="1" step="0.01"></div>
+          <div class="field"><label for="autoC_min_run_bins">min_run_bins</label><input id="autoC_min_run_bins" type="number" value="3" min="1"></div>
+          <div class="field"><label for="autoC_start_peak_fraction">start_peak_fraction</label><input id="autoC_start_peak_fraction" type="number" value="0.50" min="0" max="1" step="0.01"></div>
+          <div class="field"><label for="autoC_end_peak_fraction">end_peak_fraction</label><input id="autoC_end_peak_fraction" type="number" value="0.65" min="0" max="1" step="0.01"></div>
+          <div class="field"><label for="autoC_end_support_fraction">end_support_fraction</label><input id="autoC_end_support_fraction" type="number" value="0.22" min="0" max="1" step="0.01"></div>
+          <div class="field"><label for="autoC_min_support_candidates">Min candidates</label><input id="autoC_min_support_candidates" type="number" value="5" min="0"></div>
+          <div class="field"><label for="autoC_min_support_total">Min total</label><input id="autoC_min_support_total" type="number" value="40" min="0"></div>
+        </div>
+      </details>
+      <div class="row" style="margin-top:7px">
+        <button id="btnApplyAutoC" class="btn">Recalculate Auto-C</button>
+        <button id="btnResetAutoC" class="btn s">Restore Auto-C defaults</button>
+      </div>
+      <div id="autoCStatus" class="status" style="margin-top:7px">No Auto-C profile computed.</div>
+      <div id="autoCMeta" class="meta-list" style="margin-top:7px"></div>
+    </section>
+
+    <section class="panel dev-panel">
+      <h2>4) Priority</h2>
+      <div id="priorityList" class="priority"></div>
+      <div id="priorityText" class="status" style="margin-top:7px"></div>
+    </section>
+
+    <section class="panel">
+      <h2>5) Export</h2>
+      <div class="row"><button id="btnExportPoints" class="btn">Points CSV</button><button id="btnExportConfig" class="btn">Config JSON</button></div>
+      <div class="row" style="margin-top:7px"><button id="btnExportSummaryCSV" class="btn s">Summary CSV</button><button id="btnExportSummaryJSON" class="btn s">Summary JSON</button></div>
+      <div class="row" style="margin-top:7px"><button id="btnExportSymbolCSV" class="btn g">Sequence CSV</button><button id="btnExportSymbolTXT" class="btn g">Sequence TXT</button></div>
+    </section>
+
+    <section class="panel">
+      <h2>Status</h2>
+      <div id="globalStatus" class="status">Ready.</div>
+    </section>
+
+    <section class="panel">
+      <div class="row">
+        <button id="btnToggleDeveloperMode" class="btn s dev-toggle" type="button" aria-pressed="false">Developer mode</button>
+        <div id="developerModeInfo" class="status developer-note">Advanced options are hidden to simplify use.</div>
+      </div>
+    </section>
+  </aside>
+
+  <main class="main">
+    <div class="main-column main-column-primary">
+      <section class="plot"><div id="tachogram"></div></section>
+      <section class="plot"><div id="poincare"></div></section>
+      <section class="plot">
+        <details id="autoCProfileDetails">
+          <summary style="cursor:pointer;font-weight:600;color:#2f5067">Auto-C 1D profile</summary>
+          <div class="hint" style="margin:8px 0 6px">The raw and smoothed candidate fractions, support segment, main peak, and suggested automatic limits are shown <span class="mono">c_lo / c_hi</span> inherited from the <span class="mono">branch_start / branch_end</span>.</div>
+          <div id="autoCProfile" class="profile-plot"></div>
+        </details>
+      </section>
+      <section class="plot">
+        <div class="metrics">
+          <div class="m"><span>Total active pairs</span><strong id="mTotal">0</strong></div>
+          <div class="m"><span>%U</span><strong id="mU">0%</strong></div>
+        </div>
+        <div class="trigram-summary">
+          <div class="trigram-head">
+            <h3>8 most frequent tetragrams</h3>
+            <span id="changeTrigramsMeta" class="trigram-caption">No data.</span>
+          </div>
+          <div id="changeTrigrams" class="trigram-list">
+            <div class="trigram-empty">No data.</div>
+          </div>
+        </div>
+        <div id="countsChips" class="chips" style="margin-top:8px"></div>
+        <div id="plotInfo" class="status" style="margin-top:8px">Not rendered.</div>
+      </section>
+    </div>
+    <div class="main-column main-column-secondary">
+      <section class="plot">
+        <h2>6) Point inspector</h2>
+        <div id="pointInspectorStatus" class="status">Click a point in the Poincare plot to inspect it.</div>
+        <div id="pointInspector" class="point-inspector" style="margin-top:8px">
+          <div class="empty">No point selected. Click any visible point in the Poincare plot.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<footer class="copyright">
+  © 2026 Álvaro Lamas Oliveira. All rights reserved. Textual and visual content licensed under
+  <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-NC 4.0</a>.
+  Source code may not be copied, modified, redistributed, or used commercially without prior written permission.
+</footer>
+
+<script>
+"use strict";
+const CATS=["T","C","B","G","R","L","U"];
+const CAT_COLORS={T:"#d73027",C:"#1a9850",B:"#f0a400",G:"#1f9fb3",R:"#7f4fcf",L:"#e15d44",U:"#8e9aa5"};
+const NO_U_CATEGORIES=new Set(["U"]);
+const NO_UT_CATEGORIES=new Set(["U","T"]);
+const T_TRIGRAMS=new Set(["TTT"]);
+const T_TETRAGRAMS=new Set(["TTTT"]);
+const Y_TETRAGRAMS=new Set(["BRBR","RBRB","BRCB","RCBR","CBRB","RBRC","GRBR","BGRB","GRBG","RBGR","CBGG","BGGR","GGRC","CBRC","CCBR","BRCC","BRBG"]);
+const WENCK_CHAIN_TETRAGRAMS=new Set(["CBGR","BGRC","GRCB","RCBG","CCBL","CBGL","BGLC","BGLR","GLRC","BLRC","LRCC","GLCC","BGRL","GRLC","BRLC","GRRC","GRCC","RRCC","RRCB"]);
+const LINEAR_FAMILY_TETRAGRAMS=new Set(["CCCC","CCCL","CCLC","CCLL","CCLG","CLCC","CLCL","CLGL","CLLC","CLLL","CLLG","CLGG","LCCL","LCLC","LCLL","LLCL","LLLC","LLLL","GGGG","LGGG","LLGG","RLLL","RLLG"]);
+const LINEAR_LOW_WEIGHT_TETRAGRAMS=new Set(["CCCC","GGGG"]);
+const HRV_FREQ_CONFIG={minWindowMin:5,fs:4,lfLo:0.04,lfHi:0.15,hfLo:0.15,hfHi:0.40,minIntervals:16,minObservedFraction:0.8};
+const WINDOW_AXIS_CONFIG={
+  quality:{maxUFraction:0.20,minNonTSupport:0.20},
+  classification:{
+    minClassScore:0.08,
+    mixedAbsGap:0.04,
+    mixedRatio:1.35
+  },
+  weights:{
+    t:{trigram:0.40,tetragram:0.60},
+    nonT:{trigram:0.50,tetragram:0.50}
+  },
+  segment:{majorityThreshold:0.50,marginThreshold:0.15},
+  labels:{y:"Y",wenck:"Wenck",linear:"Linear",mixed:"Mixed",lowInfo:"Low interpretability"}
+};
+const WINDOW_METRICS_CONFIG=WINDOW_AXIS_CONFIG;
+function computeGMinSuggested(cLo,cHi){
+  const lo=Math.min(cLo,cHi),hi=Math.max(cLo,cHi);
+  return Math.round(0.9*(lo+hi));
+}
+function computeRYMinDefault(cLo){
+  const x=Number(cLo);
+  return Math.round(0.9*(Number.isFinite(x)?x:0));
+}
+function computeLGuardMinDefault(cHi){
+  const x=Number(cHi);
+  return Math.round(Number.isFinite(x)?x:0);
+}
+const DEFAULT_CONFIG={
+  parsing:{separator:"auto",alignOffset:0},
+  filtering:{nnMode:"strict",rrRangeEnabled:true,rrMin:200,rrMax:5000},
+  rules:{
+    T:{enabled:true,min_fast:580,id_base:40,id_frac:0.30},
+    C:{enabled:true,c_lo:580,c_hi:820,id_base:60,id_frac:0.30,c_curve_amp:120,c_curve_pow:1.6,c_curve_lower_frac:0.20,c_curve_upper_frac:0.2,c_tip_extra:60},
+    B:{enabled:true,auto_from_c:true,x_lo:522,x_hi:984},
+    G:{enabled:true,g_min:computeGMinSuggested(580,820),g_rel:1.45},
+    R:{enabled:true,x_min:580,x_max:null,y_min:computeRYMinDefault(580),r_lo:0.73,r_hi:0.30},
+    L:{enabled:true,guard_min:computeLGuardMinDefault(820),id_base:60,id_frac:0.30}
+  },
+  autoC:{x_search_min:350,x_search_max:1050,jump_ratio_min:0.14,x_step:20,smoothing_bins:3,threshold_on:0.07,min_run_bins:3,start_peak_fraction:0.50,end_peak_fraction:0.65,end_support_fraction:0.22,min_support_candidates:5,min_support_total:40},
+  priority:["C","T","L","G","B","R","U"],
+  visual:{xMode:"index",pointSize:4,pointOpacity:0.65,axisMode:"manual",axisPct:99.5,axisMax:2000,showGuideRatios:true,colorTacByCat:true,sampleLimit:120000,visibleCats:{T:true,C:true,B:true,G:true,R:true,L:true,U:true}},
+  windowTemporal:WINDOW_METRICS_CONFIG
+};
+let config=JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+const state={sourceName:"manual_input",rawText:"",parsedRecords:[],parsedStats:null,hasLabels:false,unknownLabels:0,separatorUsed:"auto",records:[],recordTimes:[],validMask:[],basePairs:[],pairs:[],categoryByRecordIndex:[],rangeFilter:null,inputHash:"",lastPlotDownsample:null,selectedPointN:null,windowMetrics:[],windowSettings:{windowMin:10,stepMin:10,useActiveRange:false},selectedWindow:null,cAutoMeta:null,cAutoValidation45:null,hasActiveRobustC:false};
+let gMinSuggested=null;
+let gMinAuto=true;
+const $=(id)=>document.getElementById(id);
+const num=(v,f)=>{const x=Number(v);return Number.isFinite(x)?x:f;};
+const optNum=(v)=>{const s=String(v??"").trim();if(!s)return null;const x=Number(s);return Number.isFinite(x)?x:null;};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=(n,d=2)=>Number.isFinite(n)?n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d}):"NaN";
+const fmtPct=(f,d=2)=>`${fmt((Number.isFinite(f)?f:0)*100,d)}%`;
+const fmtMaybe=(n,d=2,empty="NA")=>Number.isFinite(n)?fmt(n,d):empty;
+const fmtPctMaybe=(f,d=1,empty="NA")=>Number.isFinite(f)?`${fmt(f*100,d)}%`:empty;
+const fmtMsMaybe=(n,d=0,empty="NA")=>Number.isFinite(n)?`${fmt(n,d)} ms`:empty;
+const deep=(o)=>JSON.parse(JSON.stringify(o));
+const fractionOrNull=(numerator,denominator)=>denominator>0?numerator/denominator:null;
+const scoreOrZero=(value)=>Number.isFinite(value)?value:0;
+const nowIso=()=>new Date().toISOString();
+function setDeveloperMode(enabled){
+  document.body.classList.toggle("dev-mode",!!enabled);
+  const btn=$("btnToggleDeveloperMode"),info=$("developerModeInfo");
+  if(btn)btn.setAttribute("aria-pressed",enabled?"true":"false");
+  if(info)info.textContent=enabled?"Advanced options are visible.":"Advanced options are hidden to simplify use.";
+}
+function getPoincareAxisMax(pairs=[]){
+  if(config.visual.axisMode==="manual")return Math.max(200,num(config.visual.axisMax,2000));
+  if(Array.isArray(pairs)&&pairs.length){
+    const axis=pctAxisMax(pairs,config.visual.axisPct);
+    if(Number.isFinite(axis))return Math.max(200,axis);
+  }
+  return 2000;
+}
+function tBurdenContextLabel(tBurden){
+  if(!Number.isFinite(tBurden))return"Not assessable";
+  const score=tBurden;
+  if(score<0.08)return"Low T";
+  if(score<0.15)return"Moderate T";
+  return"High T";
+}
+const nearId=(x,y,base,frac)=>Math.abs(y-x)<=Math.max(base,frac*Math.min(x,y));
+function normalizeCRule(raw){
+  const base=DEFAULT_CONFIG.rules.C,src=raw||base;
+  return{
+    enabled:src.enabled==null?base.enabled:!!src.enabled,
+    c_lo:num(src.c_lo,base.c_lo),
+    c_hi:num(src.c_hi,base.c_hi),
+    id_base:Math.max(0,num(src.id_base,base.id_base)),
+    id_frac:Math.max(0,num(src.id_frac,base.id_frac)),
+    c_curve_amp:Math.max(0,num(src.c_curve_amp,base.c_curve_amp)),
+    c_curve_pow:Math.max(0.1,num(src.c_curve_pow,base.c_curve_pow)),
+    c_curve_lower_frac:Math.max(0,num(src.c_curve_lower_frac,base.c_curve_lower_frac)),
+    c_curve_upper_frac:Math.max(0,num(src.c_curve_upper_frac,base.c_curve_upper_frac)),
+    c_tip_extra:num(src.c_tip_extra,base.c_tip_extra)
+  };
+}
+function cIdentityHalfWidthAtU(u,cRule){
+  const uu=Math.max(0,num(u,0)),frac=Math.max(0,num(cRule.id_frac,0)),base=Math.max(0,num(cRule.id_base,0));
+  return Math.max(base,(frac*uu)/Math.max(1e-9,1+0.5*frac));
+}
+function cWidthSplit(cRule){
+  const lower=Math.max(0,num(cRule.c_curve_lower_frac,0)),upper=Math.max(0,num(cRule.c_curve_upper_frac,0)),sum=lower+upper;
+  if(sum<=1e-9)return{lower:0.5,upper:0.5};
+  return{lower:lower/sum,upper:upper/sum};
+}
+function cBodyCurveFactor(u,cRule){
+  const lo=Math.min(cRule.c_lo,cRule.c_hi),hi=Math.max(cRule.c_lo,cRule.c_hi),span=Math.max(1e-9,hi-lo),t=clamp((u-lo)/span,0,1);
+  return Math.pow(Math.max(0,Math.sin(Math.PI*t)),Math.max(0.1,cRule.c_curve_pow));
+}
+function cBodyTotalWidth(u,cRule){
+  return Math.max(0,2*cIdentityHalfWidthAtU(u,cRule)+Math.max(0,cRule.c_curve_amp)*cBodyCurveFactor(u,cRule));
+}
+function cEnvelopeAtU(u,cRule){
+  const lo=Math.min(cRule.c_lo,cRule.c_hi),hi=Math.max(cRule.c_lo,cRule.c_hi),tipExtra=Math.max(0,num(cRule.c_tip_extra,0)),split=cWidthSplit(cRule);
+  let totalWidth=null;
+  if(u>=lo&&u<=hi){
+    totalWidth=cBodyTotalWidth(u,cRule);
+  }else if(tipExtra>0&&u>=hi&&u<=hi+tipExtra){
+    const q=(u-hi)/Math.max(1e-9,tipExtra),capFactor=Math.sqrt(Math.max(0,1-q*q));
+    totalWidth=cBodyTotalWidth(hi,cRule)*capFactor;
+  }
+  if(totalWidth==null||!Number.isFinite(totalWidth)||totalWidth<0)return null;
+  return{vMin:-totalWidth*split.lower,vMax:totalWidth*split.upper,totalWidth};
+}
+function isInCRuleGeometry(x,y,cRule){
+  const u=0.5*(x+y),v=y-x,env=cEnvelopeAtU(u,cRule);
+  return!!env&&v>=env.vMin&&v<=env.vMax;
+}
+function uvToXY(u,v){return{x:u-0.5*v,y:u+0.5*v};}
+function sampleRange(start,end,count,skipFirst=false){
+  if(end<start)return[];
+  const n=Math.max(1,Math.round(count)),out=[];
+  for(let i=skipFirst?1:0;i<=n;i++)out.push(start+((end-start)*i)/n);
+  return out;
+}
+function cEnvelopePath(cRule,steps=84){
+  const lo=Math.min(cRule.c_lo,cRule.c_hi),hi=Math.max(cRule.c_lo,cRule.c_hi),tipExtra=Math.max(0,num(cRule.c_tip_extra,0)),bodySpan=Math.max(0,hi-lo),capSpan=Math.max(0,tipExtra),totalSpan=Math.max(1e-9,bodySpan+capSpan);
+  const bodySteps=Math.max(12,Math.round(steps*((bodySpan/totalSpan)||1))),capSteps=capSpan>0?Math.max(10,Math.round(steps*(capSpan/totalSpan))):0;
+  const samples=[...sampleRange(lo,hi,bodySteps,false),...sampleRange(hi,hi+capSpan,capSteps,true)];
+  if(samples.length<2)return"";
+  const upper=[],lower=[];
+  for(const u of samples){const env=cEnvelopeAtU(u,cRule);if(!env)continue;upper.push(uvToXY(u,env.vMax));}
+  for(let i=samples.length-1;i>=0;i--){const env=cEnvelopeAtU(samples[i],cRule);if(!env)continue;lower.push(uvToXY(samples[i],env.vMin));}
+  const pts=upper.concat(lower);
+  if(pts.length<3)return"";
+  return pts.map((p,i)=>`${i===0?"M":"L"} ${p.x},${p.y}`).join(" ")+" Z";
+}
+function refreshGMinSuggestedUI(fromInputs=true,applyToInput=false){
+  const s=$("g_min_suggest");
+  if(!state.hasActiveRobustC){
+    gMinSuggested=null;
+    if(s)s.textContent="suggested: no active C";
+    return;
+  }
+  const cLo=fromInputs?num($("c_lo").value,config.rules.C.c_lo):config.rules.C.c_lo;
+  const cHi=fromInputs?num($("c_hi").value,config.rules.C.c_hi):config.rules.C.c_hi;
+  gMinSuggested=computeGMinSuggested(cLo,cHi);
+  if(s)s.textContent=`suggested: ${gMinSuggested}`;
+  if(applyToInput&&gMinSuggested!=null){
+    $("g_min").value=String(gMinSuggested);
+    config.rules.G.g_min=gMinSuggested;
+  }
+}
+function syncTFastMinFromC(fromInputs=true,applyToInput=true){
+  if(!state.hasActiveRobustC)return;
+  const cLo=fromInputs?num($("c_lo").value,config.rules.C.c_lo):config.rules.C.c_lo;
+  if(applyToInput){
+    $("t_min_fast").value=String(cLo);
+  }
+  config.rules.T.min_fast=cLo;
+}
+function syncRYMinFromC(fromInputs=true,applyToInput=true){
+  if(!state.hasActiveRobustC)return;
+  const cLo=fromInputs?num($("c_lo").value,config.rules.C.c_lo):config.rules.C.c_lo;
+  const yMin=computeRYMinDefault(cLo);
+  if(applyToInput){
+    $("r_y_min").value=String(yMin);
+  }
+  config.rules.R.y_min=yMin;
+}
+function syncLGuardMinFromC(fromInputs=true,applyToInput=true){
+  if(!state.hasActiveRobustC)return;
+  const cHi=fromInputs?num($("c_hi").value,config.rules.C.c_hi):config.rules.C.c_hi;
+  const guardMin=computeLGuardMinDefault(cHi);
+  if(applyToInput){
+    $("l_guard_min").value=String(guardMin);
+  }
+  config.rules.L.guard_min=guardMin;
+}
+function setBAutoUI(){
+  const auto=$("b_auto_from_c");
+  const on=!!(auto&&auto.checked);
+  ["b_x_lo","b_x_hi","r_x_min"].forEach(id=>{$(id).disabled=on;});
+}
+function syncRuleRRRangeFromInputs(){
+  let rrMin=num($("rrMin").value,config.filtering.rrMin);
+  let rrMax=num($("rrMax").value,config.filtering.rrMax);
+  if(rrMin>rrMax){const t=rrMin;rrMin=rrMax;rrMax=t;}
+  config.filtering.rrRangeEnabled=$("rrRangeEnabled").checked;
+  config.filtering.rrMin=rrMin;
+  config.filtering.rrMax=rrMax;
+  $("rrMin").value=String(rrMin);
+  $("rrMax").value=String(rrMax);
+}
+const AUTO_C_DEPENDENT_RANGES={bLoFactor:0.90,bHiFactor:1.20};
+const AUTO_C_FALLBACK={fixedLo:580,fixedHi:820,minWeakWidthBins:4,minRangeWidthMs:80};
+function setStatus(id,text,type="info"){const el=$(id);el.textContent=text;el.className="status";if(type==="ok")el.classList.add("ok");if(type==="warn")el.classList.add("warn");if(type==="bad")el.classList.add("bad");}
+function baseName(name){if(!name)return"data";const s=name.replace(/[^\w.-]+/g,"_");const i=s.lastIndexOf(".");return i>0?s.slice(0,i):s;}
+function csvCell(v){const s=v==null?"":String(v);return /[",\n\r]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}
+function download(name,text,mime="text/plain;charset=utf-8"){const b=new Blob([text],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);}
+function inputHash(records){let h=2166136261;for(const r of records){const s=`${Math.round(r.rr*1000)}|${r.label||""};`;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}}return(`00000000${(h>>>0).toString(16)}`).slice(-8);} 
+function splitLine(line,sep){if(sep==="single")return[line.trim()];if(sep==="space")return line.trim().split(/\s+/).filter(Boolean);if(sep==="tab")return line.split(/\t+/).map(s=>s.trim()).filter(Boolean);if(sep==="semicolon")return line.split(";").map(s=>s.trim()).filter(Boolean);if(sep==="comma")return line.split(",").map(s=>s.trim()).filter(Boolean);return[line.trim()];}
+function isNumToken(t){if(!t)return false;return /^[-+]?\d+(?:\.\d+)?$/.test(t.trim().replace(",","."));}
+function detectSep(lines){const sample=lines.slice(0,250);let semi=0,tab=0,commaLabel=0,commaAny=0,commaNum=0,space2=0;for(const ln of sample){if(ln.includes(";"))semi++;if(/\t/.test(ln))tab++;if(ln.includes(",")){commaAny++;const p=ln.split(",").map(s=>s.trim()).filter(Boolean);if(p.length>=2){if(/^[A-Za-z?]/.test(p[1]||""))commaLabel++;if(isNumToken(p[0])&&isNumToken(p[1]))commaNum++;}}if(ln.trim().split(/\s+/).filter(Boolean).length>=2)space2++;}
+  if(tab>=3&&tab>=semi&&tab>=commaLabel&&tab>=space2)return"tab";
+  if(semi>=3&&semi>=tab&&semi>=commaLabel&&semi>=space2)return"semicolon";
+  if(commaLabel>=2)return"comma";
+  if(commaAny>=3&&commaNum<commaAny*0.6)return"comma";
+  if(space2>=3)return"space";
+  return"single";
+}
+function normLabel(raw){const t=(raw||"").trim();if(!t)return"";const c=t[0].toUpperCase();if(c==="N"||c==="V"||c==="S")return c;return"?";}
+
+function parseInput(raw,opts){
+  // Robust parser: supports 1-col RR or 2-col RR+Label with auto/manual separator.
+  const lines=raw.split(/\r?\n/);const cleaned=[];
+  for(const ln of lines){const cut=ln.split("#")[0].trim();if(cut)cleaned.push(cut);} 
+  const sep=opts.separator==="auto"?detectSep(cleaned):opts.separator;
+  const rows=[];let twoColRows=0,secondNonNum=0;
+  for(let i=0;i<cleaned.length;i++){const tokens=splitLine(cleaned[i],sep);if(tokens.length>=2){twoColRows++;if(!isNumToken(tokens[1]))secondNonNum++;}rows.push({tokens,rowIndex:i});}
+  const hasTwo=sep!=="single"&&twoColRows>0&&secondNonNum>0;
+  const align=opts.alignOffset||0;let invalid=0,unknown=0,provided=0;const records=[];
+  for(let i=0;i<rows.length;i++){
+    const row=rows[i];let rrTok="",rawLabel="";
+    if(hasTwo){rrTok=row.tokens[0]||"";const ref=rows[i+align];rawLabel=(ref&&ref.tokens.length>=2)?ref.tokens[1]:"";}
+    else{if(sep==="comma"&&row.tokens.length===2&&isNumToken(row.tokens[0])&&isNumToken(row.tokens[1]))rrTok=`${row.tokens[0]}.${row.tokens[1]}`;else rrTok=row.tokens[0]||"";}
+    const rr=Number.parseFloat(String(rrTok).replace(",","."));if(!Number.isFinite(rr)){invalid++;continue;}
+    let label="";if(hasTwo){label=normLabel(rawLabel);if((rawLabel||"").trim()){provided++;if(label==="?")unknown++;}}
+    records.push({rr,label,rawLabel:rawLabel||"",origIndex:row.rowIndex});
+  }
+  return{records,stats:{totalRawLines:lines.length,nonEmptyRows:cleaned.length,validRecords:records.length,invalidRR:invalid,labelsProvided:provided},hasLabels:hasTwo,unknownLabels:unknown,separatorUsed:sep};
+}
+
+function splitCSVLine(line,sep){
+  const out=[];let cur="",inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){
+      if(inQ&&line[i+1]==='"'){cur+='"';i++;continue;}
+      inQ=!inQ;continue;
+    }
+    if(!inQ&&ch===sep){out.push(cur.trim());cur="";continue;}
+    cur+=ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
+function headerIndexMap(headers){const m={};headers.forEach((h,i)=>{const k=String(h||"").replace(/^\uFEFF/,"").trim().toLowerCase();if(k&&!Object.prototype.hasOwnProperty.call(m,k))m[k]=i;});return m;}
+function parseMaybePointsCSV(raw,sepSetting){
+  const lines=[];for(const ln of raw.split(/\r?\n/)){const t=ln.trim();if(t&&!t.startsWith("#"))lines.push(ln);}
+  if(lines.length<2)return null;
+  const forced=sepSetting==="comma"?[","]:sepSetting==="semicolon"?[";"]:sepSetting==="tab"?["\t"]:[",",";","\t"];
+  let best=null;
+  for(const sep of forced){
+    const head=splitCSVLine(lines[0],sep),idx=headerIndexMap(head);
+    const hits=(Number.isInteger(idx.rrn)?1:0)+(Number.isInteger(idx.rrn1)?1:0)+(Number.isInteger(idx.category)?1:0);
+    const score=hits*10+head.length;
+    if(!best||score>best.score)best={sep,head,idx,score};
+  }
+  if(!best)return null;
+  if(!Number.isInteger(best.idx.rrn)||!Number.isInteger(best.idx.rrn1)||!Number.isInteger(best.idx.category))return null;
+  const iRrn=best.idx.rrn,iRrn1=best.idx.rrn1,iCat=best.idx.category;
+  const iOrig=Number.isInteger(best.idx.orig_n)?best.idx.orig_n:(Number.isInteger(best.idx.n)?best.idx.n:-1);
+  const iLblN=Number.isInteger(best.idx.label_n)?best.idx.label_n:-1,iLblN1=Number.isInteger(best.idx.label_n1)?best.idx.label_n1:-1;
+  const pairs=[];let invalid=0;
+  for(let i=1;i<lines.length;i++){
+    const row=splitCSVLine(lines[i],best.sep);
+    if(!row.length||row.every(v=>String(v).trim()===""))continue;
+    const rrn=Number.parseFloat(String(row[iRrn]||"").replace(",","."));
+    const rrn1=Number.parseFloat(String(row[iRrn1]||"").replace(",","."));
+    if(!Number.isFinite(rrn)||!Number.isFinite(rrn1)){invalid++;continue;}
+    const seqN=pairs.length;
+    const origVal=Number.parseInt(String(iOrig>=0?(row[iOrig]||""):seqN),10);
+    const catRaw=String(row[iCat]||"").trim().toUpperCase();
+    pairs.push({
+      n:seqN,
+      orig_n:Number.isFinite(origVal)?origVal:seqN,
+      x:rrn,
+      y:rrn1,
+      label_n:iLblN>=0?String(row[iLblN]||"").trim():"",
+      label_n1:iLblN1>=0?String(row[iLblN1]||"").trim():"",
+      categoryImported:CATS.includes(catRaw)?catRaw:""
+    });
+  }
+  if(!pairs.length)return{mode:"points_csv",separatorUsed:best.sep,pairs:[],invalidRows:invalid,records:[]};
+  const rrSeq=[pairs[0].x];for(const p of pairs)rrSeq.push(p.y);
+  const records=rrSeq.map((rr,i)=>({rr,label:"",rawLabel:"",origIndex:i}));
+  return{mode:"points_csv",separatorUsed:best.sep,pairs,invalidRows:invalid,records};
+}
+
+function applyRRRange(records,enabled,min,max){if(!enabled)return{records:records.slice(),dropped:0};const out=[];let d=0;for(const r of records){if(r.rr>=min&&r.rr<=max)out.push(r);else d++;}return{records:out,dropped:d};}
+function buildValidIntervals(records,hasLabels,mode){const v=new Array(records.length).fill(true);if(!hasLabels||mode==="none")return v;if(mode==="lax"){for(let i=0;i<records.length;i++)v[i]=records[i].label==="N";return v;}for(let i=0;i<records.length;i++){if(i===0){v[i]=false;continue;}const cons=records[i].origIndex===records[i-1].origIndex+1;v[i]=records[i].label==="N"&&records[i-1].label==="N"&&cons;}return v;}
+function buildPairs(records,valid,hasLabels,mode){const out=[];for(let n=0;n<records.length-1;n++){const a=records[n],b=records[n+1];if(b.origIndex!==a.origIndex+1)continue;let include=true;if(hasLabels&&mode!=="none")include=valid[n]&&valid[n+1];if(!include)continue;out.push({n,orig_n:a.origIndex,x:a.rr,y:b.rr,label_n:a.label||"",label_n1:b.label||""});}return out;}
+function buildTimes(records){const t=new Array(records.length);let acc=0;for(let i=0;i<records.length;i++){acc+=records[i].rr/1000;t[i]=acc;}return t;}
+
+function normalizeAutoCConfig(raw){
+  const def=DEFAULT_CONFIG.autoC;
+  let xSearchMin=num(raw&&raw.x_search_min,def.x_search_min);
+  let xSearchMax=num(raw&&raw.x_search_max,def.x_search_max);
+  if(xSearchMin>xSearchMax){const t=xSearchMin;xSearchMin=xSearchMax;xSearchMax=t;}
+  return{
+    x_search_min:Math.max(0,xSearchMin),
+    x_search_max:Math.max(0,xSearchMax),
+    jump_ratio_min:Math.max(0,num(raw&&raw.jump_ratio_min,def.jump_ratio_min)),
+    x_step:Math.max(1,Math.round(num(raw&&raw.x_step,def.x_step))),
+    smoothing_bins:Math.max(1,Math.round(num(raw&&raw.smoothing_bins,def.smoothing_bins))),
+    threshold_on:clamp(num(raw&&raw.threshold_on,def.threshold_on),0,1),
+    min_run_bins:Math.max(1,Math.round(num(raw&&raw.min_run_bins,def.min_run_bins))),
+    start_peak_fraction:clamp(num(raw&&raw.start_peak_fraction,def.start_peak_fraction),0,1),
+    end_peak_fraction:clamp(num(raw&&raw.end_peak_fraction,def.end_peak_fraction),0,1),
+    end_support_fraction:clamp(num(raw&&raw.end_support_fraction,def.end_support_fraction),0,1),
+    min_support_candidates:Math.max(0,Math.round(num(raw&&raw.min_support_candidates,def.min_support_candidates))),
+    min_support_total:Math.max(0,Math.round(num(raw&&raw.min_support_total,def.min_support_total)))
+  };
+}
+function formatActiveCRangeText(){
+  return state.hasActiveRobustC?`[${config.rules.C.c_lo}, ${config.rules.C.c_hi}] ms`:"none";
+}
+function syncActiveCInputs(){
+  const cLoInput=$("c_lo"),cHiInput=$("c_hi");
+  if(!cLoInput||!cHiInput)return;
+  if(state.hasActiveRobustC&&Number.isFinite(config.rules.C.c_lo)&&Number.isFinite(config.rules.C.c_hi)){
+    cLoInput.value=String(config.rules.C.c_lo);
+    cHiInput.value=String(config.rules.C.c_hi);
+    cLoInput.placeholder="";
+    cHiInput.placeholder="";
+    cLoInput.title="Active C applied";
+    cHiInput.title="Active C applied";
+    return;
+  }
+  cLoInput.value="";
+  cHiInput.value="";
+  cLoInput.placeholder="no C";
+  cHiInput.placeholder="no C";
+  cLoInput.title="No active C applied";
+  cHiInput.title="No active C applied";
+}
+function refreshActiveRobustCState(){
+  // The main profile defines the range; the fixed 45% profile only validates branch strength.
+  state.hasActiveRobustC=!!(
+    state.cAutoMeta&&state.cAutoMeta.is_robust&&
+    state.cAutoValidation45&&state.cAutoValidation45.is_robust&&
+    config.rules.C.enabled
+  );
+  syncActiveCInputs();
+  return state.hasActiveRobustC;
+}
+function syncAutoCUI(){
+  const p=normalizeAutoCConfig(config.autoC||DEFAULT_CONFIG.autoC);
+  config.autoC={...p};
+  $("autoC_x_search_min").value=String(p.x_search_min);
+  $("autoC_x_search_max").value=String(p.x_search_max);
+  $("autoC_jump_ratio_min").value=String(p.jump_ratio_min);
+  $("autoC_x_step").value=String(p.x_step);
+  $("autoC_smoothing_bins").value=String(p.smoothing_bins);
+  $("autoC_threshold_on").value=String(p.threshold_on);
+  $("autoC_min_run_bins").value=String(p.min_run_bins);
+  $("autoC_start_peak_fraction").value=String(p.start_peak_fraction);
+  $("autoC_end_peak_fraction").value=String(p.end_peak_fraction);
+  $("autoC_end_support_fraction").value=String(p.end_support_fraction);
+  $("autoC_min_support_candidates").value=String(p.min_support_candidates);
+  $("autoC_min_support_total").value=String(p.min_support_total);
+}
+function readAutoCSettings(){
+  config.autoC=normalizeAutoCConfig({
+    x_search_min:$("autoC_x_search_min").value,
+    x_search_max:$("autoC_x_search_max").value,
+    jump_ratio_min:$("autoC_jump_ratio_min").value,
+    x_step:$("autoC_x_step").value,
+    smoothing_bins:$("autoC_smoothing_bins").value,
+    threshold_on:$("autoC_threshold_on").value,
+    min_run_bins:$("autoC_min_run_bins").value,
+    start_peak_fraction:$("autoC_start_peak_fraction").value,
+    end_peak_fraction:$("autoC_end_peak_fraction").value,
+    end_support_fraction:$("autoC_end_support_fraction").value,
+    min_support_candidates:$("autoC_min_support_candidates").value,
+    min_support_total:$("autoC_min_support_total").value
+  });
+  syncAutoCUI();
+  return config.autoC;
+}
+function normalizeAutoCBounds(cLo,cHi,params){
+  const xMin=Math.min(params.x_search_min,params.x_search_max),xMax=Math.max(params.x_search_min,params.x_search_max);
+  let lo=Number.isFinite(cLo)?clamp(cLo,xMin,xMax):NaN;
+  let hi=Number.isFinite(cHi)?clamp(cHi,xMin,xMax):NaN;
+  if(!Number.isFinite(lo)||!Number.isFinite(hi)||hi<lo){
+    const center=Number.isFinite(lo)&&Number.isFinite(hi)?0.5*(lo+hi):0.5*(xMin+xMax);
+    const half=Math.max(AUTO_C_FALLBACK.minRangeWidthMs/2,params.x_step*1.5);
+    lo=clamp(center-half,xMin,xMax);
+    hi=clamp(center+half,xMin,xMax);
+  }
+  if((hi-lo)<AUTO_C_FALLBACK.minRangeWidthMs){
+    const center=0.5*(lo+hi);
+    lo=clamp(center-AUTO_C_FALLBACK.minRangeWidthMs/2,xMin,xMax);
+    hi=clamp(center+AUTO_C_FALLBACK.minRangeWidthMs/2,xMin,xMax);
+  }
+  if(hi<lo){const t=lo;lo=hi;hi=t;}
+  return{c_lo:Math.round(lo),c_hi:Math.round(hi)};
+}
+function buildFixedAutoCFallback(params,extra={}){
+  const bounds=normalizeAutoCBounds(AUTO_C_FALLBACK.fixedLo,AUTO_C_FALLBACK.fixedHi,params);
+  return{
+    ...bounds,
+    mode:"fallback_fixed",
+    usedFallback:true,
+    is_robust:false,
+    reason:"No usable signal in the 1D profile; only an informational fixed fallback suggestion remains.",
+    robustness_reason:"Informational fixed fallback: no robust support segment was detected; the C population is not activated and no operational range is applied.",
+    totalValidPairs:0,
+    nPairsUsed:0,
+    nCandidatePairs:0,
+    peak_x:null,
+    peak_fraction:null,
+    peak_support_value:null,
+    support_lo:null,
+    support_hi:null,
+    support_bin_count:0,
+    profileBins:[],
+    peak_index:null,
+    support_start_index:null,
+    support_end_index:null,
+    segment_candidate_count:0,
+    segment_total_count:0,
+    support_segments:[],
+    support_segments_found:0,
+    support_segments_with_min_run:0,
+    support_segments_with_raw_support:0,
+    support_segments_robust:0,
+    support_segment_selection_reason:"",
+    ...extra
+  };
+}
+function syncBRangeFromC(updateInputs=true){
+  if(!state.hasActiveRobustC)return;
+  const cLo=Math.min(config.rules.C.c_lo,config.rules.C.c_hi),cHi=Math.max(config.rules.C.c_lo,config.rules.C.c_hi);
+  const useRR=!!config.filtering.rrRangeEnabled;
+  const rrMinEff=useRR?num(config.filtering.rrMin,0):0;
+  const rrMaxEff=useRR?num(config.filtering.rrMax,1e9):1e9;
+  let xLo=cLo*AUTO_C_DEPENDENT_RANGES.bLoFactor;
+  let xHi=cHi*AUTO_C_DEPENDENT_RANGES.bHiFactor;
+  xLo=clamp(xLo,rrMinEff,rrMaxEff);
+  xHi=clamp(xHi,rrMinEff,rrMaxEff);
+  if(xLo>xHi){const t=xLo;xLo=xHi;xHi=t;}
+  config.rules.B.x_lo=Math.round(xLo);
+  config.rules.B.x_hi=Math.round(xHi);
+  let rMin=cLo;
+  rMin=clamp(rMin,rrMinEff,rrMaxEff);
+  config.rules.R.x_min=Math.round(rMin);
+  if(updateInputs){
+    $("b_x_lo").value=String(config.rules.B.x_lo);
+    $("b_x_hi").value=String(config.rules.B.x_hi);
+    $("r_x_min").value=String(config.rules.R.x_min);
+  }
+}
+function autoCStatusSuffix(){
+  if(!state.cAutoMeta)return"";
+  const tag=({support_segment:"main",fallback_weak_peak:"weak fallback",fallback_fixed:"fixed fallback"})[state.cAutoMeta.mode]||state.cAutoMeta.mode;
+  const robustness=state.cAutoMeta.is_robust?"robusta":"no robusta";
+  const validation=state.cAutoValidation45?(state.cAutoValidation45.is_robust?"robusta":"no robusta"):"sin calcular";
+  return` | Suggested Auto-C: [${state.cAutoMeta.c_lo},${state.cAutoMeta.c_hi}] (${tag}, main ${robustness}, validation 45% ${validation}) | Active C: ${formatActiveCRangeText()} | peak=${fmtMsMaybe(state.cAutoMeta.peak_x,0)} | frac=${fmtPctMaybe(state.cAutoMeta.peak_fraction,1)} | support=${fmtMaybe(state.cAutoMeta.peak_support_value,1)}`;
+}
+function buildAutoC1DProfile(pairs,params){
+  const xMin=Math.min(params.x_search_min,params.x_search_max),xMax=Math.max(params.x_search_min,params.x_search_max),step=Math.max(1,params.x_step);
+  const allValid=[];
+  for(const pair of Array.isArray(pairs)?pairs:[]){
+    const x=num(pair.x,NaN),y=num(pair.y,NaN);
+    if(!Number.isFinite(x)||!Number.isFinite(y)||x<=0)continue;
+    const d=y-x,jumpRatio=d/x;
+    allValid.push({...pair,d,jump_ratio:jumpRatio,is_candidate:jumpRatio>=params.jump_ratio_min,in_search:x>=xMin&&x<=xMax});
+  }
+  const searchPairs=allValid.filter(pair=>pair.in_search).sort((a,b)=>a.x-b.x);
+  const span=Math.max(xMax-xMin,step),binCount=Math.max(1,Math.ceil(span/step));
+  const bins=[];let index=0;
+  for(let i=0;i<binCount;i++){
+    const xLo=xMin+(i*step),xHi=i===binCount-1?xMax:Math.min(xMax,xLo+step);
+    let nTotal=0,nCandidate=0;
+    while(index<searchPairs.length&&searchPairs[index].x<xLo)index++;
+    let j=index;
+    while(j<searchPairs.length&&inHalfOpenBin(searchPairs[j].x,xLo,xHi,i===binCount-1)){
+      nTotal++;
+      if(searchPairs[j].is_candidate)nCandidate++;
+      j++;
+    }
+    index=j;
+    bins.push({
+      index:i,
+      x_lo:roundTo(xLo,3),
+      x_hi:roundTo(xHi,3),
+      x_center:roundTo((xLo+xHi)/2,3),
+      n_total:nTotal,
+      n_candidate:nCandidate,
+      fraction_candidate:nTotal>0?nCandidate/nTotal:0
+    });
+  }
+  const smoothFractions=movingAverage(bins.map(bin=>bin.fraction_candidate),params.smoothing_bins);
+  const smoothCandidates=movingAverage(bins.map(bin=>bin.n_candidate),params.smoothing_bins);
+  bins.forEach((bin,idx)=>{
+    bin.fraction_candidate_smooth=smoothFractions[idx];
+    bin.n_candidate_smooth=smoothCandidates[idx];
+  });
+  return{
+    bins,
+    totalValidPairs:allValid.length,
+    searchPairs,
+    searchCandidateCount:searchPairs.filter(pair=>pair.is_candidate).length
+  };
+}
+function summarizeAutoCSegmentMass(bins,startIdx,endIdx){
+  if(!Array.isArray(bins)||!Number.isInteger(startIdx)||!Number.isInteger(endIdx)||startIdx<0||endIdx<startIdx)return{
+    segment_candidate_count:0,
+    segment_total_count:0
+  };
+  let segmentCandidateCount=0,segmentTotalCount=0;
+  for(let i=startIdx;i<=endIdx&&i<bins.length;i++){
+    const bin=bins[i];
+    if(!bin)continue;
+    segmentCandidateCount+=Math.max(0,num(bin.n_candidate,0));
+    segmentTotalCount+=Math.max(0,num(bin.n_total,0));
+  }
+  return{
+    segment_candidate_count:segmentCandidateCount,
+    segment_total_count:segmentTotalCount
+  };
+}
+function buildAutoCSupportSegmentSummary(bins,startIdx,endIdx){
+  const segmentMass=summarizeAutoCSegmentMass(bins,startIdx,endIdx);
+  const peakIdx=findAutoCPeakBinIndex(bins,startIdx,endIdx);
+  return{
+    startIdx,
+    endIdx,
+    support_lo:bins[startIdx]?.x_lo??null,
+    support_hi:bins[endIdx]?.x_hi??null,
+    support_bin_count:Math.max(0,(endIdx-startIdx)+1),
+    peak_index:peakIdx,
+    peak_fraction_candidate_smooth:bins[peakIdx]?.fraction_candidate_smooth??null,
+    peak_n_candidate_smooth:bins[peakIdx]?.n_candidate_smooth??null,
+    ...segmentMass
+  };
+}
+function getAutoCSupportSegments(bins,params){
+  if(!Array.isArray(bins)||!bins.length)return[];
+  const thresholdOn=num(params&&params.threshold_on,0);
+  const segments=[];
+  let startIdx=-1;
+  for(let i=0;i<bins.length;i++){
+    const value=num(bins[i]?.fraction_candidate_smooth,0);
+    const isAbove=value>=thresholdOn;
+    if(isAbove&&startIdx===-1){
+      startIdx=i;
+      continue;
+    }
+    if(!isAbove&&startIdx!==-1){
+      segments.push(buildAutoCSupportSegmentSummary(bins,startIdx,i-1));
+      startIdx=-1;
+    }
+  }
+  if(startIdx!==-1)segments.push(buildAutoCSupportSegmentSummary(bins,startIdx,bins.length-1));
+  return segments;
+}
+function evaluateAutoCSupportSegmentRobustness(bins,segment,params){
+  const counts=summarizeAutoCSegmentMass(bins,segment?.startIdx,segment?.endIdx);
+  const hasCandidateMass=counts.segment_candidate_count>=params.min_support_candidates;
+  const hasTotalMass=counts.segment_total_count>=params.min_support_total;
+  let robustnessReason="";
+  if(hasCandidateMass&&hasTotalMass)robustnessReason=`Robust support segment: ${counts.segment_candidate_count} candidates and ${counts.segment_total_count} total points within the segment.`;
+  else if(!hasCandidateMass&&!hasTotalMass)robustnessReason=`Weak support segment: ${counts.segment_candidate_count} candidates (< ${params.min_support_candidates}) and ${counts.segment_total_count} total points (< ${params.min_support_total}).`;
+  else if(!hasCandidateMass)robustnessReason=`Weak support segment: ${counts.segment_candidate_count} candidates (< ${params.min_support_candidates}).`;
+  else robustnessReason=`Weak support segment: ${counts.segment_total_count} total points (< ${params.min_support_total}).`;
+  return{
+    ...counts,
+    is_robust:hasCandidateMass&&hasTotalMass,
+    robustness_reason:robustnessReason
+  };
+}
+function hasAutoCRawSupport(bins,segment,params){
+  if(!Array.isArray(bins)||!segment)return{
+    has_raw_support:false,
+    raw_support_positive_bins:0,
+    raw_support_gate_bins:0,
+    raw_support_reason:"Invalid segment: there are no bins for checking raw support."
+  };
+  let positiveBins=0,gateBins=0;
+  for(let i=segment.startIdx;i<=segment.endIdx&&i<bins.length;i++){
+    const bin=bins[i];
+    if(!bin)continue;
+    const nCandidate=Math.max(0,num(bin.n_candidate,0));
+    const fractionCandidate=Math.max(0,num(bin.fraction_candidate,0));
+    if(nCandidate>0&&fractionCandidate>0)positiveBins++;
+    if(fractionCandidate>=params.threshold_on||nCandidate>=2)gateBins++;
+  }
+  const hasRawSupport=positiveBins>0&&gateBins>0;
+  let rawSupportReason="";
+  if(hasRawSupport)rawSupportReason=`Actual raw support: ${positiveBins} bins with positive candidates and ${gateBins} bins with useful raw support within the segment.`;
+  else if(positiveBins<=0)rawSupportReason="No actual raw support: the smoothed segment contains no bin with n_candidate>0 and fraction_candidate>0.";
+  else rawSupportReason=`Insufficient raw support: ${positiveBins} bins have positive candidates, but none reaches fraction_candidate >= ${roundTo(params.threshold_on,3)} or n_candidate >= 2.`;
+  return{
+    has_raw_support:hasRawSupport,
+    raw_support_positive_bins:positiveBins,
+    raw_support_gate_bins:gateBins,
+    raw_support_reason:rawSupportReason
+  };
+}
+function compareAutoCSupportSegmentStrength(a,b){
+  const metrics=[
+    ["segment_candidate_count",0],
+    ["segment_total_count",0],
+    ["peak_fraction_candidate_smooth",-Infinity],
+    ["support_bin_count",0],
+    ["peak_index",-Infinity]
+  ];
+  for(const [field,fallback] of metrics){
+    const aValue=num(a&&a[field],fallback);
+    const bValue=num(b&&b[field],fallback);
+    if(Math.abs(aValue-bValue)>1e-9)return aValue>bValue?1:-1;
+  }
+  return 0;
+}
+function selectBestAutoCSupportSegment(bins,segments,params){
+  const minRunBins=Math.max(1,num(params&&params.min_run_bins,1));
+  const evaluatedSegments=(Array.isArray(segments)?segments:[]).map(segment=>{
+    const rawSupport=hasAutoCRawSupport(bins,segment,params);
+    const meetsMinRun=(segment?.support_bin_count??0)>=minRunBins;
+    let robustness={
+      segment_candidate_count:segment?.segment_candidate_count??0,
+      segment_total_count:segment?.segment_total_count??0,
+      is_robust:false,
+      robustness_reason:""
+    };
+    if(!meetsMinRun){
+      robustness.robustness_reason=`Support segment demasiado corto: ${segment?.support_bin_count??0} bins (< ${minRunBins}).`;
+    }else if(!rawSupport.has_raw_support){
+      robustness.robustness_reason=`Support segment excluido: ${rawSupport.raw_support_reason}`;
+    }else{
+      robustness=evaluateAutoCSupportSegmentRobustness(bins,segment,params);
+    }
+    return{
+      ...segment,
+      meets_min_run:meetsMinRun,
+      ...rawSupport,
+      ...robustness
+    };
+  });
+  const eligibleSegments=evaluatedSegments.filter(segment=>segment.meets_min_run&&segment.has_raw_support);
+  const robustSegments=eligibleSegments.filter(segment=>segment.is_robust);
+  let selectedSegment=null;
+  for(const segment of robustSegments){
+    if(!selectedSegment||compareAutoCSupportSegmentStrength(segment,selectedSegment)>0)selectedSegment=segment;
+  }
+  return{selectedSegment,evaluatedSegments,eligibleSegments,robustSegments};
+}
+function summarizeAutoCSupportSegmentsForMeta(segments){
+  return(Array.isArray(segments)?segments:[]).map(segment=>({
+    startIdx:segment.startIdx,
+    endIdx:segment.endIdx,
+    support_lo:segment.support_lo,
+    support_hi:segment.support_hi,
+    support_bin_count:segment.support_bin_count,
+    segment_candidate_count:segment.segment_candidate_count,
+    segment_total_count:segment.segment_total_count,
+    peak_index:segment.peak_index,
+    peak_fraction_candidate_smooth:segment.peak_fraction_candidate_smooth,
+    peak_n_candidate_smooth:segment.peak_n_candidate_smooth,
+    meets_min_run:!!segment.meets_min_run,
+    has_raw_support:!!segment.has_raw_support,
+    raw_support_positive_bins:segment.raw_support_positive_bins??0,
+    raw_support_gate_bins:segment.raw_support_gate_bins??0,
+    raw_support_reason:segment.raw_support_reason||"",
+    is_robust:!!segment.is_robust,
+    robustness_reason:segment.robustness_reason||""
+  }));
+}
+function findAutoCPeakBinIndex(bins,startIdx,endIdx){
+  const safeStartIdx=findFirstSegmentDataBinIndex(bins,startIdx,endIdx);
+  const fromIdx=safeStartIdx===-1?startIdx:safeStartIdx;
+  let peakIdx=-1,peakValue=-Infinity,peakSupport=-Infinity;
+  for(let i=fromIdx;i<=endIdx;i++){
+    const value=bins[i].fraction_candidate_smooth,support=bins[i].n_candidate_smooth;
+    if(!Number.isFinite(value))continue;
+    if(value>peakValue||(Math.abs(value-peakValue)<=1e-9&&support>peakSupport)){
+      peakValue=value;
+      peakSupport=support;
+      peakIdx=i;
+    }
+  }
+  return peakIdx===-1?fromIdx:peakIdx;
+}
+function estimateAutoCStartFromPeak(bins,startIdx,endIdx,params){
+  const fallbackIdx=findFirstSegmentDataBinIndex(bins,startIdx,endIdx);
+  const safeStartIdx=fallbackIdx===-1?startIdx:fallbackIdx;
+  const peakIdx=findAutoCPeakBinIndex(bins,safeStartIdx,endIdx);
+  const peakValue=bins[peakIdx]?.fraction_candidate_smooth;
+  if(!Number.isFinite(peakValue)||peakValue<=0)return bins[safeStartIdx].x_lo;
+  const startLevel=params.start_peak_fraction*peakValue;
+  for(let i=peakIdx-1;i>=safeStartIdx;i--){
+    if(bins[i].fraction_candidate_smooth<startLevel)return bins[i+1].x_lo;
+  }
+  return bins[safeStartIdx].x_lo;
+}
+function estimateAutoCEndFromPeak(bins,startIdx,endIdx,params){
+  const fallbackEnd=bins[endIdx].x_hi;
+  const fallbackIdx=findFirstSegmentDataBinIndex(bins,startIdx,endIdx);
+  const safeStartIdx=fallbackIdx===-1?startIdx:fallbackIdx;
+  const peakIdx=findAutoCPeakBinIndex(bins,safeStartIdx,endIdx);
+  const peakValue=bins[peakIdx]?.fraction_candidate_smooth;
+  const peakSupportValue=maxValue(bins.slice(safeStartIdx,endIdx+1).map(bin=>bin.n_candidate_smooth));
+  if(!Number.isFinite(peakValue)||peakValue<=0)return fallbackEnd;
+  const endLevel=params.end_peak_fraction*peakValue;
+  const endSupportLevel=params.end_support_fraction*peakSupportValue;
+  const hasSupportGate=Number.isFinite(endSupportLevel)&&peakSupportValue>0;
+  for(let i=peakIdx+1;i<=endIdx;i++){
+    const fractionDropped=bins[i].fraction_candidate_smooth<endLevel;
+    const supportDropped=hasSupportGate&&bins[i].n_candidate_smooth<endSupportLevel;
+    if(fractionDropped||supportDropped)return bins[Math.max(peakIdx,i-1)].x_hi;
+  }
+  return fallbackEnd;
+}
+function describeAutoCRangeFromSegment(profile,segment,params,mode,usedFallback,reason,extraMeta={}){
+  const bins=profile.bins,peakIdx=findAutoCPeakBinIndex(bins,segment.startIdx,segment.endIdx);
+  const peakFraction=bins[peakIdx]?.fraction_candidate_smooth??null;
+  const peakSupportValue=maxValue(bins.slice(segment.startIdx,segment.endIdx+1).map(bin=>bin.n_candidate_smooth));
+  const segmentMass=summarizeAutoCSegmentMass(bins,segment.startIdx,segment.endIdx);
+  const bounds=normalizeAutoCBounds(
+    estimateAutoCStartFromPeak(bins,segment.startIdx,segment.endIdx,params),
+    estimateAutoCEndFromPeak(bins,segment.startIdx,segment.endIdx,params),
+    params
+  );
+  return{
+    ...bounds,
+    mode,
+    usedFallback,
+    reason,
+    totalValidPairs:profile.totalValidPairs,
+    nPairsUsed:profile.searchPairs.length,
+    nCandidatePairs:profile.searchCandidateCount,
+    peak_x:bins[peakIdx]?.x_center??null,
+    peak_fraction:peakFraction,
+    peak_support_value:peakSupportValue,
+    support_lo:bins[segment.startIdx]?.x_lo??null,
+    support_hi:bins[segment.endIdx]?.x_hi??null,
+    support_bin_count:(segment.endIdx-segment.startIdx)+1,
+    profileBins:bins,
+    peak_index:peakIdx,
+    support_start_index:segment.startIdx,
+    support_end_index:segment.endIdx,
+    ...segmentMass,
+    ...extraMeta
+  };
+}
+function buildWeakAutoCRange(profile,params,extraMeta={}){
+  const bins=profile.bins;
+  if(!bins.length)return null;
+  let peakIdx=-1,peakValue=-Infinity,peakSupport=-Infinity;
+  bins.forEach((bin,idx)=>{
+    if(bin.n_candidate<=0)return;
+    if(bin.fraction_candidate_smooth>peakValue||(Math.abs(bin.fraction_candidate_smooth-peakValue)<=1e-9&&bin.n_candidate_smooth>peakSupport)){
+      peakValue=bin.fraction_candidate_smooth;
+      peakSupport=bin.n_candidate_smooth;
+      peakIdx=idx;
+    }
+  });
+  if(peakIdx===-1||!Number.isFinite(peakValue)||peakValue<=0)return null;
+  let startIdx=peakIdx,endIdx=peakIdx;
+  while(startIdx>0&&bins[startIdx-1].fraction_candidate_smooth>=params.threshold_on)startIdx--;
+  while(endIdx<bins.length-1&&bins[endIdx+1].fraction_candidate_smooth>=params.threshold_on)endIdx++;
+  const halfSpan=Math.max(1,Math.floor(AUTO_C_FALLBACK.minWeakWidthBins/2));
+  startIdx=Math.max(0,Math.min(startIdx,peakIdx-halfSpan));
+  endIdx=Math.min(bins.length-1,Math.max(endIdx,peakIdx+halfSpan));
+  const segmentMass=summarizeAutoCSegmentMass(bins,startIdx,endIdx);
+  const extras=extraMeta&&typeof extraMeta==="object"?extraMeta:{};
+  const weakReason=extras.reason||"There is no clear sustained segment; only a weak suggestion around the main peak remains.";
+  const weakRobustnessReason=extras.robustness_reason||"Informational weak fallback: there is a suggestive peak but no robust support segment; the C population is not activated and no operational range is applied.";
+  return describeAutoCRangeFromSegment(
+    profile,
+    {startIdx,endIdx},
+    params,
+    "fallback_weak_peak",
+    true,
+    weakReason,
+    {
+      is_robust:false,
+      robustness_reason:weakRobustnessReason,
+      ...extras,
+      ...segmentMass
+    }
+  );
+}
+function detectAutoCRange(pairs,rawConfig=config.autoC){
+  const params=normalizeAutoCConfig(rawConfig||DEFAULT_CONFIG.autoC);
+  const profile=buildAutoC1DProfile(pairs,params);
+  if(!profile.searchPairs.length){
+    return buildFixedAutoCFallback(params,{
+      totalValidPairs:profile.totalValidPairs,
+      profileBins:profile.bins,
+      reason:"There are no pairs within x_search; only an informational fixed fallback suggestion remains."
+    });
+  }
+  const supportSegments=getAutoCSupportSegments(profile.bins,params);
+  const selection=selectBestAutoCSupportSegment(profile.bins,supportSegments,params);
+  const supportDiagnostics={
+    support_segments:summarizeAutoCSupportSegmentsForMeta(selection.evaluatedSegments),
+    support_segments_found:selection.evaluatedSegments.length,
+    support_segments_with_min_run:selection.evaluatedSegments.filter(segment=>segment.meets_min_run).length,
+    support_segments_with_raw_support:selection.eligibleSegments.length,
+    support_segments_robust:selection.robustSegments.length,
+    support_segment_selection_reason:selection.selectedSegment
+      ?`The best robust segment was selected among ${selection.robustSegments.length} robust segments and ${selection.evaluatedSegments.length} detected above-threshold segments.`
+      :selection.evaluatedSegments.length
+        ?"The profile contained a suggestive signal, but no above-threshold segment simultaneously met the minimum raw-support and robustness requirements."
+        :"No above-threshold segments were detected in fraction_candidate_smooth; attempting the weak fallback based on the main peak."
+  };
+  const segment=selection.selectedSegment;
+  if(segment){
+    return describeAutoCRangeFromSegment(
+      profile,
+      segment,
+      params,
+      "support_segment",
+      false,
+      "Sustained support segment selected as the best robust segment in the smoothed profile.",
+      {
+        ...segment,
+        ...supportDiagnostics
+      }
+    );
+  }
+  const weakFallback=buildWeakAutoCRange(profile,params,{
+    ...supportDiagnostics,
+    reason:selection.evaluatedSegments.length
+      ?"The profile contains a suggestive signal, but there was no robust support segment with sufficient raw support; only a weak suggestion around the main peak remains."
+      :"There is no useful above-threshold segment; only a weak suggestion around the main peak remains.",
+    robustness_reason:selection.evaluatedSegments.length
+      ?"Informational weak fallback: there was a suggestive signal, but no robust support segment with sufficient raw support; the C population is not activated and no operational range is applied."
+      :"Informational weak fallback: there is a suggestive peak but no robust support segment; the C population is not activated and no operational range is applied."
+  });
+  if(weakFallback)return weakFallback;
+  return buildFixedAutoCFallback(params,{
+    totalValidPairs:profile.totalValidPairs,
+    nPairsUsed:profile.searchPairs.length,
+    nCandidatePairs:profile.searchCandidateCount,
+    profileBins:profile.bins,
+    ...supportDiagnostics,
+    reason:selection.evaluatedSegments.length
+      ?"The profile contained a suggestive signal, but there was neither a robust support segment nor a useful main peak for the weak fallback; only the informational fixed fallback remains."
+      :"No usable signal in the 1D profile; only an informational fixed fallback suggestion remains."
+  });
+}
+function applyAutoCRangeFromBasePairs(fromInputs=true){
+  if(fromInputs)readAutoCSettings();
+  const mainParams=normalizeAutoCConfig(config.autoC||DEFAULT_CONFIG.autoC);
+  const res=detectAutoCRange(state.basePairs,mainParams);
+  const validation45=detectAutoCRange(state.basePairs,{...mainParams,jump_ratio_min:0.45});
+  state.cAutoMeta=res;
+  state.cAutoValidation45=validation45;
+  const auto=$("b_auto_from_c");
+  const autoFromC=auto?auto.checked:!!config.rules.B.auto_from_c;
+  config.rules.B.auto_from_c=autoFromC;
+  if(res.is_robust&&validation45.is_robust){
+    config.rules.C.c_lo=res.c_lo;
+    config.rules.C.c_hi=res.c_hi;
+    refreshActiveRobustCState();
+    if(state.hasActiveRobustC){
+      if(autoFromC)syncBRangeFromC(true);
+      syncTFastMinFromC(false,true);
+      syncRYMinFromC(false,true);
+      syncLGuardMinFromC(false,true);
+      refreshGMinSuggestedUI(false,gMinAuto);
+    }
+  }else{
+    refreshActiveRobustCState();
+    const mainLabel=res.is_robust?"robust":"non-robust";
+    const validationLabel=validation45.is_robust?"robust":"non-robust";
+    setStatus("autoCStatus",`Auto-C main profile is ${mainLabel} and the fixed 45% validation profile is ${validationLabel}. Suggested main range [${res.c_lo}, ${res.c_hi}] ms; no C population is activated and no operational range is applied.`,"warn");
+  }
+}
+function autoCModeLabel(mode){
+  return({support_segment:"logica main",fallback_weak_peak:"weak fallback",fallback_fixed:"fixed fallback"})[mode]||mode;
+}
+function renderAutoCMeta(){
+  const box=$("autoCMeta");
+  if(!state.cAutoMeta){
+    if(box)box.innerHTML=`<div class="meta-row"><span class="label">Active C applied</span><span class="value">${formatActiveCRangeText()}</span></div>`;
+    setStatus("autoCStatus",`No Auto-C profiles computed. Active C applied: ${formatActiveCRangeText()}. Operational C requires robust main and fixed 45% validation profiles.`,"info");
+    return;
+  }
+  const m=state.cAutoMeta,v45=state.cAutoValidation45;
+  const suggestedRange=`[${m.c_lo}, ${m.c_hi}] ms`;
+  const activeRange=formatActiveCRangeText();
+  const mainRobustnessLabel=m.is_robust?"robust":"non-robust";
+  const validationRobustnessLabel=v45?(v45.is_robust?"robust":"non-robust"):"not computed";
+  const robustnessLabel=state.hasActiveRobustC?"C robusta":"C no robusta";
+  const statusText=state.hasActiveRobustC
+    ?`${robustnessLabel}: main profile ${mainRobustnessLabel}; fixed 45% validation ${validationRobustnessLabel}. Suggested main Auto-C ${suggestedRange}. Active C applied: ${activeRange}.`.trim()
+    :`${robustnessLabel}: main profile ${mainRobustnessLabel}; fixed 45% validation ${validationRobustnessLabel}. Suggested main Auto-C ${suggestedRange}. Active C applied: none.`.trim();
+  setStatus("autoCStatus",statusText,state.hasActiveRobustC?"ok":"warn");
+  if(!box)return;
+  const rows=[
+    ["Auto-C status",robustnessLabel],
+    ["Main profile",mainRobustnessLabel],
+    ["Validation profile (45%)",validationRobustnessLabel],
+    ["Suggested Auto-C",suggestedRange],
+    ["Active C applied",activeRange],
+    ["Mode",autoCModeLabel(m.mode)],
+    ["Motivo",m.reason||"NA"],
+    ["Robustez",m.robustness_reason||"NA"],
+    ["Main peak",fmtMsMaybe(m.peak_x,0)],
+    ["Peak fraction_candidate_smooth",fmtPctMaybe(m.peak_fraction,1)],
+    ["Peak support",fmtMaybe(m.peak_support_value,1)],
+    ["Support segment",Number.isFinite(m.support_lo)&&Number.isFinite(m.support_hi)?`[${fmt(m.support_lo,0)}, ${fmt(m.support_hi,0)}] ms (${m.support_bin_count} bins)`:"NA"],
+    ["Candidates in segment",Number.isFinite(m.segment_candidate_count)?m.segment_candidate_count.toLocaleString("en-US"):"0"],
+    ["Total in segment",Number.isFinite(m.segment_total_count)?m.segment_total_count.toLocaleString("en-US"):"0"],
+    ["Pairs in x_search",Number.isFinite(m.nPairsUsed)?m.nPairsUsed.toLocaleString("en-US"):"0"],
+    ["Candidates in x_search",Number.isFinite(m.nCandidatePairs)?m.nCandidatePairs.toLocaleString("en-US"):"0"],
+    ["45% validation peak",v45?fmtMsMaybe(v45.peak_x,0):"NA"],
+    ["45% candidates in x_search",v45&&Number.isFinite(v45.nCandidatePairs)?v45.nCandidatePairs.toLocaleString("en-US"):"0"],
+    ["45% robustness",v45?(v45.robustness_reason||v45.reason||"NA"):"NA"]
+  ];
+  box.innerHTML=rows.map(([label,value])=>`<div class="meta-row"><span class="label">${label}</span><span class="value">${value}</span></div>`).join("");
+}
+function renderAutoCProfile(){
+  const div=$("autoCProfile");
+  const details=$("autoCProfileDetails");
+  if(!div)return;
+  if(details&&!details.open)return;
+  const params=normalizeAutoCConfig(config.autoC||DEFAULT_CONFIG.autoC);
+  const meta=state.cAutoMeta;
+  if(!meta||!Array.isArray(meta.profileBins)||!meta.profileBins.length){
+    Plotly.react(div,[{x:[0],y:[0],mode:"markers",type:"scatter",marker:{size:0,opacity:0}}],{margin:{l:60,r:60,t:30,b:42},title:{text:"Auto-C profile: no data",font:{size:13}},xaxis:{title:"RRn ms",range:[params.x_search_min,params.x_search_max]},yaxis:{title:"fraction_candidate",range:[0,0.2]},height:320,showlegend:false},{displaylogo:false,responsive:true});
+    return;
+  }
+  const bins=meta.profileBins,x=bins.map(bin=>bin.x_center),raw=bins.map(bin=>bin.fraction_candidate),smooth=bins.map(bin=>bin.fraction_candidate_smooth),support=bins.map(bin=>bin.n_candidate_smooth);
+  const fracMax=Math.max(params.threshold_on,maxValue(raw),maxValue(smooth),0.12);
+  const supportMax=Math.max(maxValue(support),1);
+  const traces=[
+    {type:"bar",name:"n_candidate_smooth",x,y:support,yaxis:"y2",marker:{color:"rgba(15,95,153,.16)",line:{color:"rgba(15,95,153,.35)",width:1}},hovertemplate:"x=%{x:.1f} ms<br>n_candidate_smooth=%{y:.2f}<extra></extra>"},
+    {type:"scatter",mode:"lines+markers",name:"fraction_candidate",x,y:raw,line:{color:"#8fb2ca",width:1.5},marker:{size:4,color:"#8fb2ca"},hovertemplate:"x=%{x:.1f} ms<br>fraction_candidate=%{y:.3f}<extra></extra>"},
+    {type:"scatter",mode:"lines",name:"fraction_candidate_smooth",x,y:smooth,line:{color:"#0f5f99",width:3},hovertemplate:"x=%{x:.1f} ms<br>fraction_candidate_smooth=%{y:.3f}<extra></extra>"}
+  ];
+  if(Number.isFinite(meta.peak_x)&&Number.isFinite(meta.peak_fraction)){
+    traces.push({type:"scatter",mode:"markers",name:"main peak",x:[meta.peak_x],y:[meta.peak_fraction],marker:{size:9,color:"#b53a34",line:{color:"#fff",width:1}},hovertemplate:"peak=%{x:.1f} ms<br>fraction=%{y:.3f}<extra></extra>"});
+  }
+  const shapes=[
+    {type:"line",x0:params.x_search_min,x1:params.x_search_max,y0:params.threshold_on,y1:params.threshold_on,xref:"x",yref:"y",line:{color:"rgba(155,103,0,.95)",dash:"dot",width:1.6}}
+  ];
+  if(Number.isFinite(meta.support_lo)&&Number.isFinite(meta.support_hi)){
+    shapes.push({type:"rect",x0:meta.support_lo,x1:meta.support_hi,y0:0,y1:1,xref:"x",yref:"paper",fillcolor:"rgba(31,159,179,.10)",line:{color:"rgba(31,159,179,.45)",width:1},layer:"below"});
+  }
+  if(Number.isFinite(meta.peak_x))shapes.push({type:"line",x0:meta.peak_x,x1:meta.peak_x,y0:0,y1:1,xref:"x",yref:"paper",line:{color:"#b53a34",dash:"dash",width:1.4}});
+  if(Number.isFinite(meta.c_lo))shapes.push({type:"line",x0:meta.c_lo,x1:meta.c_lo,y0:0,y1:1,xref:"x",yref:"paper",line:{color:"#00a0b5",dash:"dash",width:1.8}});
+  if(Number.isFinite(meta.c_hi))shapes.push({type:"line",x0:meta.c_hi,x1:meta.c_hi,y0:0,y1:1,xref:"x",yref:"paper",line:{color:"#00a0b5",dash:"dash",width:1.8}});
+  Plotly.react(div,traces,{
+    title:{text:`Auto-C main 1D profile (${autoCModeLabel(meta.mode)})`,font:{size:13}},
+    margin:{l:60,r:64,t:30,b:42},
+    xaxis:{title:"RRn ms (bins over x)",range:[params.x_search_min,params.x_search_max]},
+    yaxis:{title:"fraction_candidate",range:[0,Math.max(0.1,fracMax*1.18)]},
+    yaxis2:{title:"smoothed candidate support",overlaying:"y",side:"right",rangemode:"tozero",range:[0,supportMax*1.15]},
+    height:320,
+    legend:{orientation:"h",y:1.14,x:0},
+    shapes,
+    uirevision:"autoCProfile"
+  },{displaylogo:false,responsive:true,modeBarButtonsToRemove:["lasso2d","select2d"]});
+}
+
+function classifyPair(p,cfg){
+  const x=p.x,y=p.y,min=Math.min(x,y),max=Math.max(x,y),ratio=y/Math.max(1e-9,x),r=cfg.rules,cRule=normalizeCRule(r.C);
+  const hasActiveC=!!state.hasActiveRobustC;
+  const condTNoC=r.T.enabled&&nearId(x,y,r.T.id_base,r.T.id_frac);
+  if(!hasActiveC)return condTNoC?"T":"U";
+  const lLo=Math.max(cRule.c_hi,r.L.guard_min),lHi=r.G.g_min;
+  const cond={
+    T:r.T.enabled&&nearId(x,y,r.T.id_base,r.T.id_frac)&&min<r.T.min_fast,
+    C:cRule.enabled&&isInCRuleGeometry(x,y,cRule),
+    B:r.B.enabled&&x<y&&x>=r.B.x_lo&&x<=r.B.x_hi,
+    G:r.G.enabled&&min>=r.G.g_min&&(max/Math.max(1e-9,min))<=r.G.g_rel,
+    R:false,
+    L:r.L.enabled&&min>=lLo&&min<lHi&&nearId(x,y,r.L.id_base,r.L.id_frac)
+  };
+  const rMin=Math.min(r.R.r_lo,r.R.r_hi),rMax=Math.max(r.R.r_lo,r.R.r_hi);
+  const passRXMax=!Number.isFinite(r.R.x_max)||x<=r.R.x_max;
+  const passRYMin=!Number.isFinite(r.R.y_min)||y>=r.R.y_min;
+  cond.R=r.R.enabled&&x>y&&x>=r.R.x_min&&passRXMax&&passRYMin&&ratio>=rMin&&ratio<=rMax;
+  for(const c of cfg.priority){if(c==="U")return"U";if(cond[c])return c;}return"U";
+}
+
+function classifyAllPairs(){state.pairs=state.basePairs.map(p=>({...p,category:classifyPair(p,config)}));state.categoryByRecordIndex=new Array(state.records.length).fill("");for(const p of state.pairs)state.categoryByRecordIndex[p.n]=p.category;}
+function pairX(p){return config.visual.xMode==="time"?(state.recordTimes[p.n]||0):p.n;}
+function activePairs(opts={vis:false,source:"pairs"}){let arr=opts.source==="base"?state.basePairs:state.pairs;if(state.rangeFilter&&state.rangeFilter.mode===config.visual.xMode){const lo=Math.min(state.rangeFilter.min,state.rangeFilter.max),hi=Math.max(state.rangeFilter.min,state.rangeFilter.max);arr=arr.filter(p=>{const x=pairX(p);return x>=lo&&x<=hi;});}if(opts.vis&&opts.source!=="base")arr=arr.filter(p=>config.visual.visibleCats[p.category]);return arr;}
+function countCats(pairs){const c={T:0,C:0,B:0,G:0,R:0,L:0,U:0};for(const p of pairs)c[p.category]++;return c;}
+function countCatsCfg(pairs,cfg){const c={T:0,C:0,B:0,G:0,R:0,L:0,U:0};for(const p of pairs)c[classifyPair(p,cfg)]++;return c;}
+function topFrequentTetragrams(pairs,limit=8){
+  const src=(Array.isArray(pairs)?pairs:[]).slice().sort((a,b)=>a.n-b.n||a.orig_n-b.orig_n),counts=new Map();
+  let allTotal=0;
+  for(let i=0;i+3<src.length;i++){
+    const a=src[i]?.category,b=src[i+1]?.category,c=src[i+2]?.category,d=src[i+3]?.category;
+    if(!a||!b||!c||!d)continue;
+    allTotal++;
+    const token=`${a}${b}${c}${d}`;
+    counts.set(token,(counts.get(token)||0)+1);
+  }
+  const items=[...counts.entries()].map(([token,count])=>({token,count,share:allTotal?count/allTotal:0}))
+    .sort((a,b)=>b.count-a.count||a.token.localeCompare(b.token,"es"))
+    .slice(0,Math.max(0,limit|0));
+  return{allTotal,items};
+}
+function escHtml(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[ch]);}
+function tetragramsContainingPoint(pairN){
+  const src=state.pairs.slice().sort((a,b)=>a.n-b.n||a.orig_n-b.orig_n),index=src.findIndex(p=>p.n===pairN),out=[];
+  if(index<0)return out;
+  for(let start=Math.max(0,index-3);start<=Math.min(index,src.length-4);start++){
+    const items=src.slice(start,start+4);
+    out.push({items,selectedOffset:index-start,token:items.map(p=>p.category).join("")});
+  }
+  return out;
+}
+function renderPointInspector(){
+  const box=$("pointInspector"),status=$("pointInspectorStatus");if(!box||!status)return;
+  const p=state.selectedPointN==null?null:state.pairs.find(item=>item.n===state.selectedPointN);
+  if(!p){box.innerHTML='<div class="empty">No point selected. Click any visible point in the Poincare plot.</div>';setStatus("pointInspectorStatus","Click a point in the Poincare plot to inspect it.","info");return;}
+  const time=state.recordTimes[p.n],delta=p.y-p.x,relation=delta>0?"short -> long":delta<0?"long -> short":"identity",distId=delta/Math.sqrt(2),tetragrams=tetragramsContainingPoint(p.n);
+  const values=[
+    ["Point index",p.n],["Source index",p.orig_n],["Time",Number.isFinite(time)?`${fmt(time,3)} s`:"NA"],["Category",`<span class="category-badge"><span class="dot" style="background:${CAT_COLORS[p.category]}"></span>${escHtml(p.category)} - ${escHtml(catLabel(p.category))}</span>`],
+    ["RR(n)",`${fmt(p.x,2)} ms`],["RR(n+1)",`${fmt(p.y,2)} ms`],["Delta",`${fmt(delta,2)} ms`],["Identity distance",`${fmt(distId,2)} ms`],["Local relation",relation],["Labels",`${escHtml(p.label_n||"NA")} -> ${escHtml(p.label_n1||"NA")}`]
+  ];
+  const valueHtml=values.map(([label,value])=>`<div class="point-value"><span>${escHtml(label)}</span><strong>${value}</strong></div>`).join("");
+  const tetraHtml=tetragrams.length?tetragrams.map((t,idx)=>{
+    const token=t.items.map((item,i)=>i===t.selectedOffset?`<mark>${escHtml(item.category)}</mark>`:escHtml(item.category)).join("");
+    return `<div class="tetra-card"><div class="tetra-token">${token}</div><div class="tetra-caption">Tetragram ${idx+1} of ${tetragrams.length} containing the point · symbols n=${t.items[0].n}-${t.items[3].n}</div></div>`;
+  }).join(""):'<div class="empty">There are not enough neighboring classified points to form a tetragram containing this point.</div>';
+  box.innerHTML=`<div class="point-grid">${valueHtml}</div><div><h3 style="margin-top:4px">Tetragrams containing the selected point</h3><div class="tetra-list">${tetraHtml}</div></div>`;
+  setStatus("pointInspectorStatus",`Selected point n=${p.n}, category ${p.category}. The plot shows its incoming line and the two following transitions; the highlighted symbol marks its position in each tetragram.`,"ok");
+}
+function selectPoincarePoint(pairN){if(!Number.isInteger(pairN))return;state.selectedPointN=pairN;renderPointInspector();renderPoincare();}
+function selectedTrajectorySegments(pairs,pairN){
+  const src=(Array.isArray(pairs)?pairs:[]).slice().sort((a,b)=>a.n-b.n||a.orig_n-b.orig_n),index=src.findIndex(p=>p.n===pairN),segments=[];
+  if(index<0)return segments;
+  const specs=[{from:index-1,to:index,color:"#2563eb",label:"Previous -> selected"},{from:index,to:index+1,color:"#d97706",label:"Selected -> next"},{from:index+1,to:index+2,color:"#b91c1c",label:"Next -> second next"}];
+  for(const spec of specs){if(spec.from<0||spec.to>=src.length)continue;segments.push({...spec,a:src[spec.from],b:src[spec.to]});}
+  return segments;
+}
+function getPairTimeSeconds(p){const i=p.n+1;return i<state.recordTimes.length?state.recordTimes[i]:(state.recordTimes[p.n]||0);}
+function collectNgramStats(windowPairs,size,{excludedCategories=new Set(),supportSet=null,trackSupportTokens=false}={}){
+  let validCount=0,supportCount=0;
+  const supportCounts=trackSupportTokens&&supportSet?Object.fromEntries([...supportSet].map(token=>[token,0])):null;
+  for(let i=0;i+size-1<windowPairs.length;i++){
+    let token="",excluded=false;
+    for(let j=0;j<size;j++){
+      const cat=windowPairs[i+j]?.category;
+      if(!cat||excludedCategories.has(cat)){excluded=true;break;}
+      token+=cat;
+    }
+    if(excluded)continue;
+    validCount++;
+    if(supportSet&&supportSet.has(token)){
+      supportCount++;
+      if(supportCounts)supportCounts[token]=(supportCounts[token]||0)+1;
+    }
+  }
+  return{validCount,supportCount,supportCounts};
+}
+function collectWindowRRSeries(windowPairs){
+  const series=[],seen=new Set();
+  for(const pair of Array.isArray(windowPairs)?windowPairs:[]){
+    const points=[
+      {idx:pair?.n,rr:pair?.x},
+      {idx:Number.isInteger(pair?.n)?pair.n+1:null,rr:pair?.y}
+    ];
+    for(const point of points){
+      if(!Number.isInteger(point.idx)||!Number.isFinite(point.rr))continue;
+      if(seen.has(point.idx))continue;
+      const time_s=state.recordTimes[point.idx];
+      if(!Number.isFinite(time_s))continue;
+      series.push({idx:point.idx,time_s,rr_ms:point.rr});
+      seen.add(point.idx);
+    }
+  }
+  series.sort((a,b)=>a.idx-b.idx||a.time_s-b.time_s);
+  return series;
+}
+function summarizeWindowRRStats(windowPairs){
+  const rrValues=collectWindowRRSeries(windowPairs).map(point=>point.rr_ms);
+  if(!rrValues.length)return{rr_mean:null,sdnn:null};
+  const rrMean=rrValues.reduce((acc,value)=>acc+value,0)/rrValues.length;
+  const sdnn=rrValues.length>1
+    ?Math.sqrt(rrValues.reduce((acc,value)=>acc+(value-rrMean)*(value-rrMean),0)/(rrValues.length-1))
+    :null;
+  return{rr_mean:rrMean,sdnn};
+}
+function nextPowerOfTwo(n){
+  let p=1,target=Math.max(1,Math.ceil(n));
+  while(p<target)p*=2;
+  return p;
+}
+function fftRadix2(real,imag){
+  const n=real.length;
+  for(let i=1,j=0;i<n;i++){
+    let bit=n>>1;
+    for(;j&bit;bit>>=1)j^=bit;
+    j^=bit;
+    if(i<j){
+      const tr=real[i];real[i]=real[j];real[j]=tr;
+      const ti=imag[i];imag[i]=imag[j];imag[j]=ti;
+    }
+  }
+  for(let len=2;len<=n;len<<=1){
+    const ang=-2*Math.PI/len,wrStep=Math.cos(ang),wiStep=Math.sin(ang),half=len>>1;
+    for(let i=0;i<n;i+=len){
+      let wr=1,wi=0;
+      for(let j=0;j<half;j++){
+        const even=i+j,odd=even+half;
+        const tr=wr*real[odd]-wi*imag[odd];
+        const ti=wr*imag[odd]+wi*real[odd];
+        real[odd]=real[even]-tr;
+        imag[odd]=imag[even]-ti;
+        real[even]+=tr;
+        imag[even]+=ti;
+        const nextWr=wr*wrStep-wi*wiStep;
+        wi=wr*wiStep+wi*wrStep;
+        wr=nextWr;
+      }
+    }
+  }
+}
+function computeWindowFrequencyStats(windowPairs,bounds,cfg=HRV_FREQ_CONFIG){
+  const windowDuration_s=(bounds.end_s||0)-(bounds.start_s||0);
+  if(windowDuration_s<cfg.minWindowMin*60-1e-9)return{lf_power:null,hf_power:null,lf_hf:null};
+  const series=collectWindowRRSeries(windowPairs)
+    .filter(point=>point.time_s>=bounds.start_s&&point.time_s<bounds.end_s&&Number.isFinite(point.rr_ms)&&Number.isFinite(point.time_s));
+  if(series.length<cfg.minIntervals)return{lf_power:null,hf_power:null,lf_hf:null};
+  const t0=series[0].time_s,t1=series[series.length-1].time_s,observedDuration_s=t1-t0;
+  if(observedDuration_s<windowDuration_s*cfg.minObservedFraction)return{lf_power:null,hf_power:null,lf_hf:null};
+  const fs=cfg.fs,dt=1/fs,sampleCount=Math.floor(observedDuration_s*fs)+1;
+  if(sampleCount<4)return{lf_power:null,hf_power:null,lf_hf:null};
+  const nFft=nextPowerOfTwo(sampleCount),real=new Float64Array(nFft),imag=new Float64Array(nFft);
+  let cursor=0,sum=0;
+  for(let i=0;i<sampleCount;i++){
+    const t=t0+i*dt;
+    while(cursor+1<series.length&&series[cursor+1].time_s<t)cursor++;
+    const a=series[cursor],b=series[Math.min(cursor+1,series.length-1)];
+    let rr=a.rr_ms;
+    if(b&&b.time_s>a.time_s){
+      const q=clamp((t-a.time_s)/(b.time_s-a.time_s),0,1);
+      rr=a.rr_ms+(b.rr_ms-a.rr_ms)*q;
+    }
+    real[i]=rr;
+    sum+=rr;
+  }
+  const mean=sum/sampleCount;
+  let windowEnergy=0;
+  for(let i=0;i<sampleCount;i++){
+    const w=sampleCount>1?0.5*(1-Math.cos((2*Math.PI*i)/(sampleCount-1))):1;
+    real[i]=(real[i]-mean)*w;
+    windowEnergy+=w*w;
+  }
+  if(windowEnergy<=0)return{lf_power:null,hf_power:null,lf_hf:null};
+  fftRadix2(real,imag);
+  const df=fs/nFft,scale=1/(fs*windowEnergy);
+  let lf=0,hf=0;
+  for(let k=1;k<=nFft/2;k++){
+    const f=k*df;
+    if(f>=cfg.hfHi)break;
+    const mag2=real[k]*real[k]+imag[k]*imag[k];
+    const oneSided=(k<nFft/2)?2*mag2*scale:mag2*scale;
+    const power=oneSided*df;
+    if(f>=cfg.lfLo&&f<cfg.lfHi)lf+=power;
+    else if(f>=cfg.hfLo&&f<cfg.hfHi)hf+=power;
+  }
+  return{lf_power:lf,hf_power:hf,lf_hf:hf>0?lf/hf:null};
+}
+function classifyWindowConductionState(metrics,analysisCfg=config.windowTemporal){
+  const labels=analysisCfg.labels||WINDOW_AXIS_CONFIG.labels;
+  const qualityCfg=analysisCfg.quality||WINDOW_AXIS_CONFIG.quality;
+  const classCfg=analysisCfg.classification||WINDOW_AXIS_CONFIG.classification;
+  const notes=[];
+  const tContextLabel=metrics.t_context_label||tBurdenContextLabel(metrics.t_burden);
+  const uFraction=metrics.u_fraction;
+  const nonTSupport=scoreOrZero(metrics.nonT_support);
+  const yIndex=scoreOrZero(metrics.y_index);
+  const wenckIndex=scoreOrZero(metrics.wenck_index);
+  const linearIndex=scoreOrZero(metrics.linear_index);
+  notes.push(`T_burden ${fmtMaybe(metrics.t_burden,3)}`);
+  notes.push(`T_context ${tContextLabel}`);
+  notes.push(`nonT_support ${fmtMaybe(metrics.nonT_support,3)}`);
+  notes.push(`Y_index ${fmtMaybe(metrics.y_index,3)}`);
+  notes.push(`Wenck_index ${fmtMaybe(metrics.wenck_index,3)}`);
+  notes.push(`Linear_index ${fmtMaybe(metrics.linear_index,3)}`);
+  notes.push(`U_fraction ${fmtMaybe(uFraction,3)}`);
+  if(Number.isFinite(uFraction)&&uFraction>qualityCfg.maxUFraction){
+    notes.push(`Final decision: ${labels.lowInfo} because U_fraction > ${fmt(qualityCfg.maxUFraction,2)}.`);
+    return{window_state:labels.lowInfo,is_interpretable:false,t_context_label:tContextLabel,window_state_notes:notes.join(" | ")};
+  }
+  if(nonTSupport<qualityCfg.minNonTSupport){
+    notes.push(`Final decision: ${labels.linear} because nonT_support < ${fmt(qualityCfg.minNonTSupport,2)} and there is insufficient non-T mass.`);
+    return{window_state:labels.linear,is_interpretable:true,t_context_label:tContextLabel,window_state_notes:notes.join(" | ")};
+  }
+  const rankedScores=[
+    {key:"y",label:labels.y,score:yIndex},
+    {key:"wenck",label:labels.wenck,score:wenckIndex},
+    {key:"linear",label:labels.linear,score:linearIndex}
+  ].sort((a,b)=>b.score-a.score||a.key.localeCompare(b.key,"es"));
+  const top1=rankedScores[0];
+  const top2=rankedScores[1];
+  const ratioTop12=top2.score>0?top1.score/top2.score:Infinity;
+  notes.push(`Competicion main ${top1.label}=${fmt(top1.score,3)} | ${top2.label}=${fmt(top2.score,3)} | ${rankedScores[2].label}=${fmt(rankedScores[2].score,3)}`);
+  if(top1.score>=classCfg.minClassScore&&top2.score>=classCfg.minClassScore&&((top1.score-top2.score)<classCfg.mixedAbsGap||ratioTop12<classCfg.mixedRatio)){
+    notes.push(`Final decision: ${labels.mixed} due to close competition between ${top1.label} and ${top2.label}.`);
+    return{window_state:labels.mixed,is_interpretable:true,t_context_label:tContextLabel,window_state_notes:notes.join(" | ")};
+  }
+  if(top1.score>=classCfg.minClassScore){
+    notes.push(`Final decision: ${top1.label} due to the dominant score in the universe excluding T and U.`);
+    return{window_state:top1.label,is_interpretable:true,t_context_label:tContextLabel,window_state_notes:notes.join(" | ")};
+  }
+  notes.push(`Final decision: ${labels.mixed} because no index reaches ${fmt(classCfg.minClassScore,2)}.`);
+  return{window_state:labels.mixed,is_interpretable:true,t_context_label:tContextLabel,window_state_notes:notes.join(" | ")};
+}
+function computeWindowTemporalMetricsRow(windowPairs,bounds,analysisCfg=config.windowTemporal){
+  const weightsCfg=analysisCfg.weights||WINDOW_AXIS_CONFIG.weights;
+  const counts={T:0,C:0,B:0,G:0,R:0,L:0,U:0};
+  for(const pair of windowPairs){if(Object.prototype.hasOwnProperty.call(counts,pair.category))counts[pair.category]++;}
+  const n=windowPairs.length;
+  const trigramNoUStats=collectNgramStats(windowPairs,3,{excludedCategories:NO_U_CATEGORIES});
+  const tetragramNoUStats=collectNgramStats(windowPairs,4,{excludedCategories:NO_U_CATEGORIES});
+  const trigramNonTStats=collectNgramStats(windowPairs,3,{excludedCategories:NO_UT_CATEGORIES});
+  const tetragramNonTStats=collectNgramStats(windowPairs,4,{excludedCategories:NO_UT_CATEGORIES});
+  const tTrigramStats=collectNgramStats(windowPairs,3,{excludedCategories:NO_U_CATEGORIES,supportSet:T_TRIGRAMS});
+  const tTetragramStats=collectNgramStats(windowPairs,4,{excludedCategories:NO_U_CATEGORIES,supportSet:T_TETRAGRAMS});
+  const yTetragramStats=collectNgramStats(windowPairs,4,{excludedCategories:NO_UT_CATEGORIES,supportSet:Y_TETRAGRAMS});
+  const wenckTetragramStats=collectNgramStats(windowPairs,4,{excludedCategories:NO_UT_CATEGORIES,supportSet:WENCK_CHAIN_TETRAGRAMS});
+  const linearFamilyTetragramStats=collectNgramStats(windowPairs,4,{excludedCategories:NO_UT_CATEGORIES,supportSet:LINEAR_FAMILY_TETRAGRAMS});
+  const linearLowWeightTetragramStats=collectNgramStats(windowPairs,4,{excludedCategories:NO_UT_CATEGORIES,supportSet:LINEAR_LOW_WEIGHT_TETRAGRAMS});
+  const uFraction=n?counts.U/n:null;
+  const tTrigramBurden=fractionOrNull(tTrigramStats.supportCount,tTrigramStats.validCount);
+  const tTetragramSupport=fractionOrNull(tTetragramStats.supportCount,tTetragramStats.validCount);
+  const tBurden=Number.isFinite(tTrigramBurden)||Number.isFinite(tTetragramSupport)
+    ?weightsCfg.t.trigram*scoreOrZero(tTrigramBurden)+weightsCfg.t.tetragram*scoreOrZero(tTetragramSupport)
+    :null;
+  const nonT3Fraction=fractionOrNull(trigramNonTStats.validCount,trigramNoUStats.validCount);
+  const nonT4Fraction=fractionOrNull(tetragramNonTStats.validCount,tetragramNoUStats.validCount);
+  const nonTSupport=Number.isFinite(nonT3Fraction)||Number.isFinite(nonT4Fraction)
+    ?weightsCfg.nonT.trigram*scoreOrZero(nonT3Fraction)+weightsCfg.nonT.tetragram*scoreOrZero(nonT4Fraction)
+    :null;
+  const yTetragramSupport=fractionOrNull(yTetragramStats.supportCount,yTetragramStats.validCount);
+  const yIndex=yTetragramSupport;
+  const wenckChainTetragramSupport=fractionOrNull(wenckTetragramStats.supportCount,wenckTetragramStats.validCount);
+  const wenckIndex=wenckChainTetragramSupport;
+  const linearTetragramSupport=fractionOrNull(linearFamilyTetragramStats.supportCount,linearFamilyTetragramStats.validCount);
+  const linearTotalSupport=linearTetragramSupport;
+  const linearEffectiveTetragramCount=Math.max(0,linearFamilyTetragramStats.supportCount-linearLowWeightTetragramStats.supportCount);
+  const linearEffectiveRatio=linearFamilyTetragramStats.supportCount>0
+    ?linearEffectiveTetragramCount/linearFamilyTetragramStats.supportCount
+    :0;
+  const linearIndex=Number.isFinite(linearTotalSupport)
+    ?linearTotalSupport*(0.35+0.65*linearEffectiveRatio)
+    :null;
+  const tContextLabel=tBurdenContextLabel(tBurden);
+  const rrStats=summarizeWindowRRStats(windowPairs);
+  const freqStats=computeWindowFrequencyStats(windowPairs,bounds);
+  const metrics={
+    start_s:bounds.start_s,end_s:bounds.end_s,start_min:bounds.start_s/60,end_min:bounds.end_s/60,n,
+    count_T:counts.T,count_C:counts.C,count_B:counts.B,count_G:counts.G,count_R:counts.R,count_L:counts.L,count_U:counts.U,
+    t_trigram_burden:tTrigramBurden,t_tetragram_support:tTetragramSupport,t_burden:tBurden,
+    nonT_3_fraction:nonT3Fraction,nonT_4_fraction:nonT4Fraction,nonT_support:nonTSupport,
+    y_tetragram_support:yTetragramSupport,y_index:yIndex,
+    wenck_chain_tetragram_support:wenckChainTetragramSupport,wenck_index:wenckIndex,
+    linear_tetragram_support:linearTetragramSupport,linear_family_support_4:linearTetragramSupport,linear_total_support:linearTotalSupport,
+    linear_effective_ratio:linearEffectiveRatio,linear_index:linearIndex,
+    u_fraction:uFraction,t_context_label:tContextLabel,
+    rr_mean:rrStats.rr_mean,sdnn:rrStats.sdnn,
+    lf_power:freqStats.lf_power,hf_power:freqStats.hf_power,lf_hf:freqStats.lf_hf
+  };
+  return{...metrics,...classifyWindowConductionState(metrics,analysisCfg)};
+}
+function computeWindowTemporalMetrics(pairs,windowMin,stepMin,useActiveRange,analysisCfg=config.windowTemporal){
+  const base=Array.isArray(pairs)?pairs:state.pairs;
+  const src=(useActiveRange?activePairs({vis:false,source:"pairs"}):base).slice().sort((a,b)=>a.n-b.n||a.orig_n-b.orig_n);
+  if(!src.length)return[];
+  const times=src.map(getPairTimeSeconds),win_s=Math.max(1e-9,windowMin*60),step_s=Math.max(1e-9,stepMin*60);
+  const firstTime=times[0],lastTime=times[times.length-1];
+  const rows=[];
+  let left=0,right=0,start_s=useActiveRange?firstTime:0,guard=0;
+  const maxStart=Math.max(start_s,lastTime-win_s);
+  while(start_s<=maxStart+1e-9&&guard<1e7){
+    while(left<times.length&&times[left]<start_s)left++;
+    if(right<left)right=left;
+    const end_s=start_s+win_s;
+    while(right<times.length&&times[right]<end_s)right++;
+    if(right>left)rows.push(computeWindowTemporalMetricsRow(src.slice(left,right),{start_s,end_s},analysisCfg));
+    start_s+=step_s;
+    guard++;
+  }
+  if(!rows.length)rows.push(computeWindowTemporalMetricsRow(src.slice(),{start_s:firstTime,end_s:firstTime+win_s},analysisCfg));
+  return rows;
+}
+function computeWindowSegmentSummary(rows=state.windowMetrics,analysisCfg=config.windowTemporal){
+  const labels=analysisCfg.labels||WINDOW_AXIS_CONFIG.labels;
+  const segmentCfg=analysisCfg.segment||WINDOW_AXIS_CONFIG.segment;
+  const interpretableRows=rows.filter(r=>r&&r.is_interpretable);
+  const lowInfoCount=rows.length-interpretableRows.length;
+  const counts={y:0,wenck:0,linear:0,mixed:0};
+  for(const row of interpretableRows){
+    if(row.window_state===labels.y)counts.y++;
+    else if(row.window_state===labels.wenck)counts.wenck++;
+    else if(row.window_state===labels.linear)counts.linear++;
+    else counts.mixed++;
+  }
+  const interpretableCount=interpretableRows.length;
+  const occupancy={
+    y:interpretableCount?counts.y/interpretableCount:0,
+    wenck:interpretableCount?counts.wenck/interpretableCount:0,
+    linear:interpretableCount?counts.linear/interpretableCount:0,
+    mixed:interpretableCount?counts.mixed/interpretableCount:0
+  };
+  const ranked=[
+    {key:"y",label:labels.y,share:occupancy.y},
+    {key:"wenck",label:labels.wenck,share:occupancy.wenck},
+    {key:"linear",label:labels.linear,share:occupancy.linear},
+    {key:"mixed",label:labels.mixed,share:occupancy.mixed}
+  ].sort((a,b)=>b.share-a.share||a.key.localeCompare(b.key,"es"));
+  let segmentState=labels.mixed;
+  if(ranked[0].share>=segmentCfg.majorityThreshold&&(ranked[0].share-ranked[1].share)>=segmentCfg.marginThreshold){
+    segmentState=ranked[0].label;
+  }
+  const segmentTBurden=interpretableCount
+    ?interpretableRows.reduce((acc,row)=>acc+scoreOrZero(row.t_burden),0)/interpretableCount
+    :null;
+  return{
+    total_windows:rows.length,
+    interpretable_count:interpretableCount,
+    low_info_count:lowInfoCount,
+    pct_y:occupancy.y,
+    pct_wenck:occupancy.wenck,
+    pct_linear:occupancy.linear,
+    pct_mixed:occupancy.mixed,
+    segment_state:segmentState,
+    segment_t_burden:segmentTBurden,
+    segment_t_context_label:tBurdenContextLabel(segmentTBurden)
+  };
+}
+function renderWindowSegmentSummary(rows=state.windowMetrics,analysisCfg=config.windowTemporal){
+  const box=$("windowSegmentSummary");
+  if(!box)return;
+  if(!rows.length){box.innerHTML="";return;}
+  const summary=computeWindowSegmentSummary(rows,analysisCfg);
+  const items=[
+    ["Overall segment label",summary.segment_state],
+    ["Interpretable windows",summary.interpretable_count.toLocaleString("en-US")],
+    ["Low-interpretability windows",summary.low_info_count.toLocaleString("en-US")],
+    ["%Y",fmtPctMaybe(summary.pct_y,1)],
+    ["%Wenck",fmtPctMaybe(summary.pct_wenck,1)],
+    ["%Linear",fmtPctMaybe(summary.pct_linear,1)],
+    ["%Mixed",fmtPctMaybe(summary.pct_mixed,1)],
+    ["segment_t_burden",fmtPctMaybe(summary.segment_t_burden,1)],
+    ["Contexto global T",summary.segment_t_context_label]
+  ];
+  box.innerHTML=items.map(([label,value])=>`<div class="meta-row"><span class="label">${label}</span><span class="value">${value}</span></div>`).join("");
+}
+function renderWindowTemporalMetricsTable(){
+  const b=$("windowMetricsBody");b.innerHTML="";
+  const applyBtn=$("btnApplySelectedWindow");
+  if(applyBtn)applyBtn.disabled=!state.selectedWindow;
+  if(!state.windowMetrics.length){const tr=document.createElement("tr");tr.innerHTML='<td colspan="14">No results.</td>';b.appendChild(tr);return;}
+  const isSel=(r)=>state.selectedWindow&&Math.abs(state.selectedWindow.start_s-r.start_s)<1e-9&&Math.abs(state.selectedWindow.end_s-r.end_s)<1e-9;
+  const td=(text,title="",className="")=>{const cell=document.createElement("td");cell.textContent=text;if(title)cell.title=title;if(className)cell.className=className;return cell;};
+  state.windowMetrics.forEach((r,index)=>{
+    const tr=document.createElement("tr");
+    tr.setAttribute("data-start-s",String(r.start_s));
+    tr.setAttribute("data-end-s",String(r.end_s));
+    if(isSel(r))tr.classList.add("selected");
+    tr.appendChild(td(String(index+1),"","col-seg"));
+    tr.appendChild(td(r.window_state,r.window_state_notes||"","col-state"));
+    tr.appendChild(td(fmt(r.start_min,0)));
+    tr.appendChild(td(fmt(r.end_min,0)));
+    tr.appendChild(td(fmtPctMaybe(r.y_index,1),"Final Y-pattern index. Uses only Y tetragram support, calculated without T or U."));
+    tr.appendChild(td(fmtPctMaybe(r.wenck_index,1),"Final Wenck index. Uses only Wenck tetragram support, calculated without T or U."));
+    tr.appendChild(td(fmtPctMaybe(r.linear_index,1),"Final non-tachycardic linear conduction index. Uses C/L tetragram support without T or U, modulated by the Linear effective ratio. Formula: LI = Linear_total_support x (0.35 + 0.65 x Linear_effective_ratio). Linear_effective_ratio is the proportion of Linear tetragrams other than CCCC and GGGG. CCCC and GGGG are considered weak Linear support; LLLL is considered full Linear support."));
+    tr.appendChild(td(fmtPctMaybe(r.t_burden,1),"Contextual tachycardization burden. Composite T-persistence score: 0.40 x T_trigram_burden + 0.60 x T_tetragram_support, using TTT and TTTT over the universe excluding U."));
+    tr.appendChild(td(fmtPctMaybe(r.nonT_support,1),"Non-T support. Fraction of useful n-grams that remain valid when excluding T and U. Used to decide whether sufficient non-tachycardic mass exists to infer conduction identity."));
+    tr.appendChild(td(fmtPctMaybe(r.u_fraction,1),"Total fraction of U points within the window."));
+    tr.appendChild(td(r.t_context_label,"T-burden context: low, moderate, or high according to T_burden."));
+    tr.appendChild(td(fmtMaybe(r.rr_mean,0),"Mean of the RR intervals represented in the window, in ms."));
+    tr.appendChild(td(fmtMaybe(r.sdnn,0),"Sample standard deviation of the RR intervals represented in the window, in ms."));
+    tr.appendChild(td(fmtMaybe(r.lf_hf,2),"LF/HF ratio from windowed HRV spectral analysis. LF=0.04-0.15 Hz; HF=0.15-0.40 Hz."));
+    b.appendChild(tr);
+  });
+}
+function applyWindowRange(start_s,end_s){
+  config.visual.xMode="time";
+  $("xMode").value="time";
+  state.rangeFilter={min:start_s,max:end_s,mode:"time"};
+  state.selectedWindow={start_s,end_s};
+  renderAll();
+  renderWindowTemporalMetricsTable();
+}
+function exportWindowMetricsCSV(){
+  if(!state.windowMetrics.length){setStatus("windowStatus","There are no window indices to export.","warn");return;}
+  const h=["start_s","end_s","start_min","end_min","n","count_T","count_C","count_B","count_G","count_R","count_L","count_U","t_trigram_burden","t_tetragram_support","t_burden","nonT_3_fraction","nonT_4_fraction","nonT_support","y_tetragram_support","y_index","wenck_chain_tetragram_support","wenck_index","linear_tetragram_support","linear_family_support_4","linear_total_support","linear_effective_ratio","linear_index","u_fraction","t_context_label","is_interpretable","window_state","rr_mean","sdnn","lf_power","hf_power","lf_hf","window_state_notes"];
+  const rows=[h.join(",")];
+  for(const r of state.windowMetrics){
+    rows.push(h.map(k=>{
+      const v=r[k];
+      if(typeof v==="number"){
+        if(Number.isNaN(v))return"NaN";
+        if(!Number.isFinite(v))return"";
+      }
+      return csvCell(v);
+    }).join(","));
+  }
+  const wm=state.windowSettings.windowMin,sm=state.windowSettings.stepMin;
+  const name=`${baseName(state.sourceName)}_window_indices_${wm}m_${sm}m.csv`;
+  download(name,rows.join("\n"),"text/csv;charset=utf-8");
+  setStatus("windowStatus",`Exported ${name}`,"ok");
+}
+function invalidateWindowMetrics(msg="Window indices are outdated; recalculate."){
+  state.windowMetrics=[];
+  state.selectedWindow=null;
+}
+function syncWindowUI(){
+  $("windowMin").value=String(state.windowSettings.windowMin);
+  $("stepMin").value=String(state.windowSettings.stepMin);
+  $("windowUseActiveRange").checked=!!state.windowSettings.useActiveRange;
+}
+function readWindowSettings(){
+  state.windowSettings.windowMin=Math.max(HRV_FREQ_CONFIG.minWindowMin,num($("windowMin").value,10));
+  state.windowSettings.stepMin=Math.max(0.1,num($("stepMin").value,10));
+  state.windowSettings.useActiveRange=$("windowUseActiveRange").checked;
+  $("windowMin").value=String(state.windowSettings.windowMin);
+}
+
+function pctAxisMax(pairs,pct){if(!pairs.length)return 2000;const v=[];const maxVals=pairs.length*2,target=180000,step=maxVals>target?Math.ceil(maxVals/target):1;let i=0;for(const p of pairs){if(i%step===0)v.push(p.x);i++;if(i%step===0)v.push(p.y);i++;}v.sort((a,b)=>a-b);const k=Math.min(v.length-1,Math.max(0,Math.floor((pct/100)*(v.length-1))));return Math.max(200,Math.ceil(v[k]*1.05/10)*10);}
+
+function catLabel(c){if(c==="T")return"fast near-id";if(c==="C")return"C u-band near-id";if(c==="B")return"short->long";if(c==="G")return"long-long cloud";if(c==="R")return"long->short";if(c==="L")return"identity";return"other";}
+function renderPriority(){const box=$("priorityList");box.innerHTML="";config.priority.forEach((c,i)=>{const d=document.createElement("div");d.className="pitem";d.innerHTML=`<span><strong>${c}</strong> - ${catLabel(c)}</span><span><button data-act="up" data-i="${i}">move up</button> <button data-act="down" data-i="${i}">move down</button></span>`;box.appendChild(d);});$("priorityText").textContent=`Current priority: ${config.priority.join(" -> ")}`;}
+function renderCatToggles(){const w=$("catToggles");w.innerHTML="";for(const c of CATS){const d=document.createElement("label");d.className="lt";d.innerHTML=`<span class="dot" style="background:${CAT_COLORS[c]}"></span><input type="checkbox" data-cat="${c}" ${config.visual.visibleCats[c]?"checked":""}><span>${c}</span>`;w.appendChild(d);}}
+function updateSliderText(){$("pointSizeVal").textContent=String(config.visual.pointSize);$("pointOpacityVal").textContent=String(config.visual.pointOpacity);$("axisPctVal").textContent=String(config.visual.axisPct);}
+function syncUI(){
+  config.rules.C=normalizeCRule(config.rules.C);
+  $("sepSelect").value=config.parsing.separator;$("alignOffset").value=String(config.parsing.alignOffset);$("nnMode").value=config.filtering.nnMode;$("rrRangeEnabled").checked=config.filtering.rrRangeEnabled;$("rrMin").value=String(config.filtering.rrMin);$("rrMax").value=String(config.filtering.rrMax);
+  $("xMode").value=config.visual.xMode;$("pointSize").value=String(config.visual.pointSize);$("pointOpacity").value=String(config.visual.pointOpacity);$("axisMode").value=config.visual.axisMode;$("axisPct").value=String(config.visual.axisPct);$("axisMax").value=String(config.visual.axisMax);$("showGuideRatios").checked=config.visual.showGuideRatios;$("colorTacByCat").checked=config.visual.colorTacByCat;$("sampleLimit").value=String(config.visual.sampleLimit);
+  $("t_enabled").checked=config.rules.T.enabled;$("t_min_fast").value=String(config.rules.T.min_fast);$("t_id_base").value=String(config.rules.T.id_base);$("t_id_frac").value=String(config.rules.T.id_frac);
+  $("c_enabled").checked=config.rules.C.enabled;$("c_id_base").value=String(config.rules.C.id_base);$("c_id_frac").value=String(config.rules.C.id_frac);$("c_curve_amp").value=String(config.rules.C.c_curve_amp);$("c_curve_pow").value=String(config.rules.C.c_curve_pow);$("c_curve_lower_frac").value=String(config.rules.C.c_curve_lower_frac);$("c_curve_upper_frac").value=String(config.rules.C.c_curve_upper_frac);$("c_tip_extra").value=String(config.rules.C.c_tip_extra);
+  $("b_enabled").checked=config.rules.B.enabled;$("b_auto_from_c").checked=!!config.rules.B.auto_from_c;$("b_x_lo").value=String(config.rules.B.x_lo);$("b_x_hi").value=String(config.rules.B.x_hi);
+  $("g_enabled").checked=config.rules.G.enabled;$("g_min").value=String(config.rules.G.g_min);$("g_rel").value=String(config.rules.G.g_rel);
+  $("r_enabled").checked=config.rules.R.enabled;$("r_x_min").value=String(config.rules.R.x_min);$("r_x_max").value=Number.isFinite(config.rules.R.x_max)?String(config.rules.R.x_max):"";$("r_y_min").value=Number.isFinite(config.rules.R.y_min)?String(config.rules.R.y_min):"";$("r_lo").value=String(config.rules.R.r_lo);$("r_hi").value=String(config.rules.R.r_hi);
+  $("l_enabled").checked=config.rules.L.enabled;$("l_guard_min").value=String(config.rules.L.guard_min);$("l_id_base").value=String(config.rules.L.id_base);$("l_id_frac").value=String(config.rules.L.id_frac);
+  syncActiveCInputs();
+  syncTFastMinFromC(true,true);
+  syncRYMinFromC(true,true);
+  syncLGuardMinFromC(true,true);
+  syncAutoCUI();
+  renderPriority();renderCatToggles();updateSliderText();
+  refreshGMinSuggestedUI(true,gMinAuto);
+  setBAutoUI();
+}
+function readParseFilter(){config.parsing.separator=$("sepSelect").value;config.parsing.alignOffset=num($("alignOffset").value,0);config.filtering.nnMode=$("nnMode").value;config.filtering.rrRangeEnabled=$("rrRangeEnabled").checked;config.filtering.rrMin=num($("rrMin").value,200);config.filtering.rrMax=num($("rrMax").value,5000);if(config.filtering.rrMin>config.filtering.rrMax){const t=config.filtering.rrMin;config.filtering.rrMin=config.filtering.rrMax;config.filtering.rrMax=t;}}
+function readVisual(){config.visual.xMode=$("xMode").value;config.visual.pointSize=clamp(Math.round(num($("pointSize").value,4)),2,12);config.visual.pointOpacity=clamp(num($("pointOpacity").value,0.65),0.1,1);config.visual.axisMode=$("axisMode").value;config.visual.axisPct=clamp(num($("axisPct").value,99.5),90,100);config.visual.axisMax=Math.max(200,num($("axisMax").value,2000));config.visual.showGuideRatios=$("showGuideRatios").checked;config.visual.colorTacByCat=$("colorTacByCat").checked;config.visual.sampleLimit=Math.max(5000,Math.round(num($("sampleLimit").value,120000)));$("catToggles").querySelectorAll("input[data-cat]").forEach(cb=>{config.visual.visibleCats[cb.getAttribute("data-cat")]=cb.checked;});updateSliderText();}
+function readRules(){
+  config.rules.T.enabled=$("t_enabled").checked;config.rules.T.min_fast=num($("t_min_fast").value,config.rules.T.min_fast);config.rules.T.id_base=num($("t_id_base").value,40);config.rules.T.id_frac=num($("t_id_frac").value,0.30);
+  config.rules.C=normalizeCRule(config.rules.C);config.rules.C.enabled=$("c_enabled").checked;const cLoInput=optNum($("c_lo").value),cHiInput=optNum($("c_hi").value);if(Number.isFinite(cLoInput))config.rules.C.c_lo=cLoInput;if(Number.isFinite(cHiInput))config.rules.C.c_hi=cHiInput;if(Number.isFinite(config.rules.C.c_lo)&&Number.isFinite(config.rules.C.c_hi)&&config.rules.C.c_lo>config.rules.C.c_hi){const t=config.rules.C.c_lo;config.rules.C.c_lo=config.rules.C.c_hi;config.rules.C.c_hi=t;}config.rules.C.id_base=num($("c_id_base").value,60);config.rules.C.id_frac=num($("c_id_frac").value,0.30);config.rules.C.c_curve_amp=Math.max(0,num($("c_curve_amp").value,120));config.rules.C.c_curve_pow=Math.max(0.1,num($("c_curve_pow").value,1.6));config.rules.C.c_curve_lower_frac=Math.max(0,num($("c_curve_lower_frac").value,0.20));config.rules.C.c_curve_upper_frac=Math.max(0,num($("c_curve_upper_frac").value,0.2));config.rules.C.c_tip_extra=num($("c_tip_extra").value,60);refreshActiveRobustCState();syncTFastMinFromC(false,true);syncRYMinFromC(false,true);syncLGuardMinFromC(false,true);refreshGMinSuggestedUI(false,gMinAuto);
+  syncRuleRRRangeFromInputs();
+  config.rules.B.enabled=$("b_enabled").checked;config.rules.B.auto_from_c=$("b_auto_from_c").checked;
+  config.rules.G.enabled=$("g_enabled").checked;config.rules.G.g_min=num($("g_min").value,config.rules.G.g_min);config.rules.G.g_rel=Math.max(1,num($("g_rel").value,1.45));
+  config.rules.R.enabled=$("r_enabled").checked;config.rules.R.r_lo=num($("r_lo").value,0.73);config.rules.R.r_hi=num($("r_hi").value,0.30);
+  const useRR=!!config.filtering.rrRangeEnabled;
+  const rrMinEff=useRR?num(config.filtering.rrMin,0):0;
+  const rrMaxEff=useRR?num(config.filtering.rrMax,1e9):1e9;
+  config.rules.R.x_max=optNum($("r_x_max").value);
+  if(config.rules.B.auto_from_c&&state.hasActiveRobustC){
+    syncBRangeFromC(true);
+  }else{
+    config.rules.B.x_lo=Math.round(num($("b_x_lo").value,config.rules.B.x_lo));
+    config.rules.B.x_hi=Math.round(num($("b_x_hi").value,config.rules.B.x_hi));
+    config.rules.R.x_min=Math.round(num($("r_x_min").value,config.rules.R.x_min));
+    if(config.rules.B.x_lo>config.rules.B.x_hi){const t=config.rules.B.x_lo;config.rules.B.x_lo=config.rules.B.x_hi;config.rules.B.x_hi=t;}
+    config.rules.B.x_lo=Math.max(0,config.rules.B.x_lo);
+    config.rules.B.x_hi=Math.max(0,config.rules.B.x_hi);
+    config.rules.R.x_min=Math.max(0,config.rules.R.x_min);
+    if(useRR){
+      config.rules.B.x_lo=clamp(config.rules.B.x_lo,rrMinEff,rrMaxEff);
+      config.rules.B.x_hi=clamp(config.rules.B.x_hi,rrMinEff,rrMaxEff);
+      config.rules.R.x_min=clamp(config.rules.R.x_min,rrMinEff,rrMaxEff);
+    }
+    if(config.rules.B.x_lo>config.rules.B.x_hi)config.rules.B.x_lo=config.rules.B.x_hi;
+    $("b_x_lo").value=String(config.rules.B.x_lo);
+    $("b_x_hi").value=String(config.rules.B.x_hi);
+    $("r_x_min").value=String(config.rules.R.x_min);
+  }
+  if(Number.isFinite(config.rules.R.x_max))config.rules.R.x_max=Math.max(0,config.rules.R.x_max);
+  if(Number.isFinite(config.rules.R.y_min))config.rules.R.y_min=Math.max(0,config.rules.R.y_min);
+  if(useRR){
+    if(Number.isFinite(config.rules.R.x_max))config.rules.R.x_max=clamp(config.rules.R.x_max,rrMinEff,rrMaxEff);
+    if(Number.isFinite(config.rules.R.y_min))config.rules.R.y_min=clamp(config.rules.R.y_min,rrMinEff,rrMaxEff);
+  }
+  if(Number.isFinite(config.rules.R.x_max)&&config.rules.R.x_max<config.rules.R.x_min)config.rules.R.x_max=config.rules.R.x_min;
+  $("r_x_max").value=Number.isFinite(config.rules.R.x_max)?String(config.rules.R.x_max):"";
+  $("r_y_min").value=Number.isFinite(config.rules.R.y_min)?String(config.rules.R.y_min):"";
+  config.rules.L.enabled=$("l_enabled").checked;config.rules.L.id_base=num($("l_id_base").value,60);config.rules.L.id_frac=num($("l_id_frac").value,0.30);
+  setBAutoUI();
+}
+
+function rebuildFromRaw(){
+  readParseFilter();state.selectedPointN=null;const text=state.rawText;if(!text||!text.trim()){setStatus("inputInfo","No input provided.","bad");setStatus("globalStatus","Load a file to process.","bad");return;}
+  const pts=parseMaybePointsCSV(text,config.parsing.separator);
+  if(pts&&pts.mode==="points_csv"){
+    state.parsedRecords=pts.records;state.parsedStats={totalRawLines:text.split(/\r?\n/).length,nonEmptyRows:pts.records.length,validRecords:pts.records.length,invalidRR:pts.invalidRows,labelsProvided:0};state.hasLabels=false;state.unknownLabels=0;state.separatorUsed=pts.separatorUsed==="\t"?"tab":(pts.separatorUsed===";"?"semicolon":"comma");state.inputHash=inputHash(pts.records);
+    state.records=pts.records;state.recordTimes=buildTimes(state.records);state.validMask=new Array(state.records.length).fill(true);state.basePairs=pts.pairs;applyAutoCRangeFromBasePairs();classifyAllPairs();
+    const msg=[`file ${state.sourceName}`,`points CSV mode`,`sep ${state.separatorUsed}`,`imported pairs ${state.basePairs.length.toLocaleString("en-US")}`,`invalid rows ${pts.invalidRows.toLocaleString("en-US")}`].join(" | ");
+    setStatus("inputInfo",msg,state.basePairs.length?"ok":"warn");
+    if(!state.basePairs.length)setStatus("globalStatus","Points CSV contains no valid pairs.","warn");else setStatus("globalStatus","Points CSV loaded and reclassified.","ok");
+    invalidateWindowMetrics("Window indices are outdated; recalculate.");
+    renderAll();
+    return;
+  }
+  const p=parseInput(text,{separator:config.parsing.separator,alignOffset:config.parsing.alignOffset});state.parsedRecords=p.records;state.parsedStats=p.stats;state.hasLabels=p.hasLabels;state.unknownLabels=p.unknownLabels;state.separatorUsed=p.separatorUsed;state.inputHash=inputHash(p.records);
+  const rr=applyRRRange(p.records,config.filtering.rrRangeEnabled,config.filtering.rrMin,config.filtering.rrMax);state.records=rr.records;state.recordTimes=buildTimes(state.records);state.validMask=buildValidIntervals(state.records,state.hasLabels,config.filtering.nnMode);state.basePairs=buildPairs(state.records,state.validMask,state.hasLabels,config.filtering.nnMode);applyAutoCRangeFromBasePairs();classifyAllPairs();
+  const st=p.stats;const labelPart=p.hasLabels?`labels yes, unknown ? ${state.unknownLabels.toLocaleString("en-US")}`:"no labels";
+  const msg=[`file ${state.sourceName}`,`sep ${state.separatorUsed}`,`rows ${st.nonEmptyRows.toLocaleString("en-US")}`,`valid RR ${st.validRecords.toLocaleString("en-US")}`,`invalid RR ${st.invalidRR.toLocaleString("en-US")}`,`filtered by range ${rr.dropped.toLocaleString("en-US")}`,`pairs ${state.basePairs.length.toLocaleString("en-US")}`,labelPart].join(" | ");
+  setStatus("inputInfo",msg,"ok");
+  if(state.basePairs.length<3)setStatus("globalStatus","Too few pairs after filtering.","warn");else setStatus("globalStatus","Analysis updated.","ok");
+  if(state.hasLabels&&state.unknownLabels>0)setStatus("globalStatus",`Analysis with ${state.unknownLabels.toLocaleString("en-US")} unknown labels ? (strict NN excludes them).`,"warn");
+  invalidateWindowMetrics("Window indices are outdated; recalculate.");
+  renderAll();
+}
+function reclassifyRender(){if(!state.basePairs.length){invalidateWindowMetrics("Window indices are outdated; recalculate.");renderAll();return;}classifyAllPairs();invalidateWindowMetrics("Window indices are outdated; recalculate.");renderAll();}
+
+function guideShapes(max){const m=(s,c,d,w=1)=>({type:"line",x0:0,y0:0,x1:max,y1:max*s,line:{color:c,dash:d,width:w},layer:"below"});const sh=[m(1,"#808a94","dot",1.5)];if(config.visual.showGuideRatios){sh.push(m(2,"#aeb7bf","dot"));sh.push(m(3,"#c5ccd2","dot"));sh.push(m(0.5,"#aeb7bf","dot"));sh.push(m(1/3,"#c5ccd2","dot"));}return sh;}
+function clipPolyHalfPlane(poly,f){
+  if(!poly.length)return[];const out=[],eps=1e-9;
+  for(let i=0;i<poly.length;i++){
+    const a=poly[i],b=poly[(i+1)%poly.length],fa=f(a),fb=f(b),aIn=fa>=-eps,bIn=fb>=-eps;
+    if(aIn&&bIn){out.push(b);continue;}
+    const den=fa-fb;
+    const t=Math.abs(den)<=1e-12?0:(fa/den);
+    const cut={x:a.x+t*(b.x-a.x),y:a.y+t*(b.y-a.y)};
+    if(aIn&&!bIn){out.push(cut);continue;}
+    if(!aIn&&bIn){out.push(cut);out.push(b);}
+  }
+  return out;
+}
+function cBandPolygon(max,uLo,uHi){
+  let poly=[{x:0,y:0},{x:max,y:0},{x:max,y:max},{x:0,y:max}];
+  poly=clipPolyHalfPlane(poly,p=>p.x);
+  poly=clipPolyHalfPlane(poly,p=>max-p.x);
+  poly=clipPolyHalfPlane(poly,p=>p.y);
+  poly=clipPolyHalfPlane(poly,p=>max-p.y);
+  poly=clipPolyHalfPlane(poly,p=>p.x+p.y-2*uLo);
+  poly=clipPolyHalfPlane(poly,p=>2*uHi-p.x-p.y);
+  return poly;
+}
+function lineSegmentForU(u,max){
+  const eps=1e-9,cand=[];
+  const add=(x,y)=>{if(x>=-eps&&x<=max+eps&&y>=-eps&&y<=max+eps)cand.push({x:clamp(x,0,max),y:clamp(y,0,max)});};
+  add(0,2*u);add(max,2*u-max);add(2*u,0);add(2*u-max,max);
+  const uniq=[];
+  for(const p of cand){if(!uniq.some(q=>Math.abs(q.x-p.x)<1e-6&&Math.abs(q.y-p.y)<1e-6))uniq.push(p);}
+  if(uniq.length<2)return null;
+  let best=[uniq[0],uniq[1]],bestD=-1;
+  for(let i=0;i<uniq.length;i++)for(let j=i+1;j<uniq.length;j++){const dx=uniq[i].x-uniq[j].x,dy=uniq[i].y-uniq[j].y,d=dx*dx+dy*dy;if(d>bestD){bestD=d;best=[uniq[i],uniq[j]];}}
+  return{x0:best[0].x,y0:best[0].y,x1:best[1].x,y1:best[1].y};
+}
+function cBandShapes(max){
+  if(!config.rules.C.enabled||!state.hasActiveRobustC)return[];
+  const cRule=normalizeCRule(config.rules.C),lo=Math.min(cRule.c_lo,cRule.c_hi),hi=Math.max(cRule.c_lo,cRule.c_hi),sh=[];
+  const path=cEnvelopePath(cRule,84);
+  if(path){
+    sh.push({type:"path",path,fillcolor:"rgba(26,152,80,.10)",line:{color:"rgba(26,152,80,0)",width:0},layer:"below"});
+  }
+  const loSeg=lineSegmentForU(lo,max),hiSeg=lineSegmentForU(hi,max);
+  if(loSeg)sh.push({type:"line",x0:loSeg.x0,y0:loSeg.y0,x1:loSeg.x1,y1:loSeg.y1,line:{color:"rgba(26,152,80,.9)",dash:"dash",width:1.4},layer:"below"});
+  if(hiSeg)sh.push({type:"line",x0:hiSeg.x0,y0:hiSeg.y0,x1:hiSeg.x1,y1:hiSeg.y1,line:{color:"rgba(26,152,80,.9)",dash:"dash",width:1.4},layer:"below"});
+  return sh;
+}
+
+function renderTacogram(){
+  const div=$("tachogram");if(!state.records.length){Plotly.react(div,[{x:[0],y:[0],mode:"markers",type:"scatter",marker:{size:0,opacity:0}}],{margin:{l:50,r:20,t:30,b:35},title:{text:"Tachogram: no data",font:{size:13}},xaxis:{title:"index"},yaxis:{title:"RR ms"},height:205},{displaylogo:false,responsive:true});return;}
+  const x=[],y=[],cd=[],colors=[];for(let i=0;i<state.records.length;i++){const r=state.records[i];const xv=config.visual.xMode==="time"?state.recordTimes[i]:i;const cat=state.categoryByRecordIndex[i]||"";x.push(xv);y.push(r.rr);cd.push([i,r.label||"",cat]);colors.push(config.visual.colorTacByCat&&cat?CAT_COLORS[cat]:"#4d6a80");}
+  const shapes=[];if(state.rangeFilter&&state.rangeFilter.mode===config.visual.xMode){const lo=Math.min(state.rangeFilter.min,state.rangeFilter.max),hi=Math.max(state.rangeFilter.min,state.rangeFilter.max);shapes.push({type:"rect",x0:lo,x1:hi,y0:0,y1:1,xref:"x",yref:"paper",fillcolor:"rgba(31,122,63,.12)",line:{color:"rgba(31,122,63,.5)",width:1},layer:"below"});}
+  Plotly.react(div,[{type:"scattergl",mode:"markers",x,y,customdata:cd,marker:{size:4,opacity:.8,color:colors},hovertemplate:"idx=%{customdata[0]}<br>RR=%{y:.2f} ms<br>label=%{customdata[1]}<br>cat=%{customdata[2]}<extra></extra>"}],{title:{text:"RR tachogram",font:{size:13}},margin:{l:52,r:20,t:30,b:38},xaxis:{title:config.visual.xMode==="time"?"time (s)":"index"},yaxis:{title:"RR ms"},height:205,dragmode:"zoom",showlegend:false,shapes,uirevision:"tacho"},{displaylogo:false,responsive:true,modeBarButtonsToRemove:["lasso2d","select2d"]});
+  if(!div.__bound){
+    div.on("plotly_relayout",ev=>{if(Object.prototype.hasOwnProperty.call(ev,"xaxis.autorange")){state.rangeFilter=null;renderPoincare();updateMetrics();updateRangeInfo();return;}if(Object.prototype.hasOwnProperty.call(ev,"xaxis.range[0]")&&Object.prototype.hasOwnProperty.call(ev,"xaxis.range[1]")){const mn=num(ev["xaxis.range[0]"],NaN),mx=num(ev["xaxis.range[1]"],NaN);if(Number.isFinite(mn)&&Number.isFinite(mx)){state.rangeFilter={min:mn,max:mx,mode:config.visual.xMode};renderPoincare();updateMetrics();updateRangeInfo();}}});
+    div.on("plotly_selected",ev=>{if(!ev||!ev.points||!ev.points.length)return;let lo=Infinity,hi=-Infinity;for(const p of ev.points){if(p.x<lo)lo=p.x;if(p.x>hi)hi=p.x;}if(Number.isFinite(lo)&&Number.isFinite(hi)){state.rangeFilter={min:lo,max:hi,mode:config.visual.xMode};renderPoincare();updateMetrics();updateRangeInfo();}});
+    div.__bound=true;
+  }
+}
+function renderPoincare(){
+  const div=$("poincare"),all=activePairs({vis:false,source:"pairs"}),vis=activePairs({vis:true,source:"pairs"}),lim=config.visual.sampleLimit;
+  const axis=getPoincareAxisMax(all);
+  if(!all.length){Plotly.react(div,[{x:[0],y:[0],mode:"markers",type:"scatter",marker:{size:0,opacity:0}}],{margin:{l:60,r:20,t:36,b:50},title:{text:"Poincare: no active pairs",font:{size:13}},xaxis:{title:"RRn ms",range:[0,axis],rangemode:"nonnegative"},yaxis:{title:"RRn+1 ms",range:[0,axis],rangemode:"nonnegative",scaleanchor:"x",scaleratio:1},height:620},{displaylogo:false,responsive:true});state.lastPlotDownsample=null;setStatus("plotInfo",`No active pairs.${autoCStatusSuffix()}`,"warn");return;}
+  let draw=vis,step=1;if(vis.length>lim){step=Math.ceil(vis.length/lim);draw=[];for(let i=0;i<vis.length;i+=step)draw.push(vis[i]);}
+  state.lastPlotDownsample=step>1?{orig:vis.length,draw:draw.length,step}:null;
+  const full=countCats(all),by={};for(const c of CATS)by[c]={x:[],y:[],cd:[]};for(const p of draw){by[p.category].x.push(p.x);by[p.category].y.push(p.y);by[p.category].cd.push([p.n,p.orig_n,p.label_n,p.label_n1,p.category]);}
+  // Draw lower-priority populations first so higher-priority populations remain visible on top.
+  const drawOrder=config.priority.slice().reverse();
+  const traces=[];for(const c of drawOrder){if(!config.visual.visibleCats[c])continue;const d=by[c];if(!d.x.length)continue;traces.push({type:"scattergl",mode:"markers",name:`${c} (${full[c]})`,legendrank:config.priority.indexOf(c)+1,visible:true,x:d.x,y:d.y,customdata:d.cd,marker:{size:config.visual.pointSize,opacity:config.visual.pointOpacity,color:CAT_COLORS[c]},hovertemplate:"n=%{customdata[0]} (orig=%{customdata[1]})<br>RRn=%{x:.2f} ms<br>RRn+1=%{y:.2f} ms<br>label_n=%{customdata[2]}<br>label_n1=%{customdata[3]}<br>cat=%{customdata[4]}<extra></extra>"});}
+  const selected=state.selectedPointN==null?null:vis.find(p=>p.n===state.selectedPointN);
+  if(selected){
+    for(const segment of selectedTrajectorySegments(all,selected.n)){
+      const points=[segment.a,segment.b];
+      traces.push({type:"scatter",mode:"lines+markers",name:segment.label,showlegend:false,x:points.map(p=>p.x),y:points.map(p=>p.y),customdata:points.map(p=>[p.n,p.orig_n,p.label_n,p.label_n1,p.category]),line:{color:segment.color,width:3},marker:{size:7,color:segment.color,line:{color:"#ffffff",width:1}},hovertemplate:`${segment.label}<br>n=%{customdata[0]}<br>RRn=%{x:.2f} ms<br>RRn+1=%{y:.2f} ms<br>cat=%{customdata[4]}<extra></extra>`});
+    }
+  }
+  if(selected&&config.visual.visibleCats[selected.category])traces.push({type:"scatter",mode:"markers",name:"Selected point",showlegend:false,x:[selected.x],y:[selected.y],customdata:[[selected.n,selected.orig_n,selected.label_n,selected.label_n1,selected.category]],marker:{size:Math.max(12,config.visual.pointSize+7),color:"#ffe58a",line:{color:"#172b3a",width:2}},hovertemplate:"Selected n=%{customdata[0]}<br>RRn=%{x:.2f} ms<br>RRn+1=%{y:.2f} ms<br>cat=%{customdata[4]}<extra></extra>"});
+  if(!traces.length)traces.push({x:[0],y:[0],mode:"markers",type:"scatter",marker:{size:0,opacity:0},name:"no categories"});
+  const visibleRevision=CATS.map(c=>config.visual.visibleCats[c]?"1":"0").join("");
+  const plotRevision=`${state.inputHash}|${config.priority.join("")}|${visibleRevision}`;
+  Plotly.react(div,traces,{title:{text:"RR(n) vs RR(n+1) Poincare plot",font:{size:14}},margin:{l:60,r:30,t:36,b:48},xaxis:{title:"RRn ms",range:[0,axis],rangemode:"nonnegative"},yaxis:{title:"RRn+1 ms",range:[0,axis],rangemode:"nonnegative",scaleanchor:"x",scaleratio:1},legend:{orientation:"h",y:1.07,x:0,itemclick:false,itemdoubleclick:false,uirevision:plotRevision},height:620,shapes:[...guideShapes(axis),...cBandShapes(axis)],uirevision:plotRevision},{displaylogo:false,responsive:true,modeBarButtonsToRemove:["lasso2d"]});
+  if(!div.__pointInspectorBound){div.on("plotly_click",ev=>{const point=ev&&ev.points&&ev.points[0],n=Number(point&&point.customdata&&point.customdata[0]);if(Number.isInteger(n))selectPoincarePoint(n);});div.__pointInspectorBound=true;}
+  if(state.lastPlotDownsample){const d=state.lastPlotDownsample;setStatus("plotInfo",`Downsampled rendering: ${d.draw.toLocaleString("en-US")} of ${d.orig.toLocaleString("en-US")} points (step=${d.step}).${autoCStatusSuffix()}`,"warn");}
+  else if(all.length<40)setStatus("plotInfo",`Too few points in Poincare.${autoCStatusSuffix()}`,"warn");
+  else setStatus("plotInfo",`Full rendering: ${vis.length.toLocaleString("en-US")} visible points.${autoCStatusSuffix()}`,"ok");
+}
+
+function updateMetrics(){
+  const pairs=activePairs({vis:false,source:"pairs"}),c=countCats(pairs),t=CATS.reduce((a,k)=>a+c[k],0),u=t?c.U/t:0;
+  $("mTotal").textContent=t.toLocaleString("en-US");
+  $("mU").textContent=fmtPct(u,2);
+  const trigramMeta=$("changeTrigramsMeta"),trigramList=$("changeTrigrams"),trigramSummary=topFrequentTetragrams(pairs,8);
+  if(trigramMeta)trigramMeta.textContent=trigramSummary.allTotal?`${trigramSummary.allTotal.toLocaleString("en-US")} tetragrams in the active range`:(t<4?"There are not enough active pairs to form tetragrams.":"No data.");
+  if(trigramList){
+    trigramList.innerHTML="";
+    if(trigramSummary.items.length){
+      for(const item of trigramSummary.items){
+        const card=document.createElement("div");
+        card.className="trigram-item";
+        card.innerHTML=`<div class="trigram-token">${item.token}</div><div class="trigram-meta">${item.count.toLocaleString("en-US")} occurrences · ${fmtPct(item.share,1)}</div>`;
+        trigramList.appendChild(card);
+      }
+    }else{
+      const empty=document.createElement("div");
+      empty.className="trigram-empty";
+      empty.textContent=t<4?"There are not enough active pairs to form tetragrams.":"There are no tetragrams in the displayed range.";
+      trigramList.appendChild(empty);
+    }
+  }
+  const w=$("countsChips");
+  w.innerHTML="";
+  for(const k of CATS){
+    const s=document.createElement("span");
+    s.className="chip";
+    s.innerHTML=`<span class="dot" style="background:${CAT_COLORS[k]}"></span>${k}: <strong>${c[k].toLocaleString("en-US")}</strong>`;
+    w.appendChild(s);
+  }
+}
+function updateRangeInfo(){if(!state.rangeFilter||state.rangeFilter.mode!==config.visual.xMode){setStatus("rangeInfo","No active time filter.","info");return;}const lo=Math.min(state.rangeFilter.min,state.rangeFilter.max),hi=Math.max(state.rangeFilter.min,state.rangeFilter.max),u=config.visual.xMode==="time"?"s":"idx";setStatus("rangeInfo",`Active time filter: [${fmt(lo,3)} - ${fmt(hi,3)}] ${u}`,"ok");}
+function renderAll(){readVisual();renderTacogram();renderPoincare();renderAutoCMeta();renderAutoCProfile();updateMetrics();updateRangeInfo();renderPointInspector();}
+function renderPlots(){renderAll();}
+
+function exportCSVPoints(){const rows=[["n","orig_n","RRn","RRn1","label_n","label_n1","category","source_file","input_hash","timestamp_utc"].join(",")],act=activePairs({vis:false,source:"pairs"}),ts=nowIso();for(const p of act)rows.push([p.n,p.orig_n,csvCell(p.x),csvCell(p.y),csvCell(p.label_n),csvCell(p.label_n1),p.category,csvCell(state.sourceName),state.inputHash,ts].join(","));const name=`${baseName(state.sourceName)}_poincare_points.csv`;download(name,rows.join("\n"),"text/csv;charset=utf-8");setStatus("globalStatus",`Exported ${name}`,"ok");}
+function exportConfigJSON(){const payload={exported_at_utc:nowIso(),source_file:state.sourceName,input_hash:state.inputHash,config:deep(config)};const name=`${baseName(state.sourceName)}_config.json`;download(name,JSON.stringify(payload,null,2),"application/json;charset=utf-8");setStatus("globalStatus",`Exported ${name}`,"ok");}
+function summaryObj(){const act=activePairs({vis:false,source:"pairs"}),c=countCats(act),t=CATS.reduce((a,k)=>a+c[k],0);return{exported_at_utc:nowIso(),source_file:state.sourceName,input_hash:state.inputHash,total_points:t,pct_U:t?c.U/t:0,counts:c,priority:config.priority.slice(),nn_mode:config.filtering.nnMode};}
+function exportSummaryCSV(){const s=summaryObj(),h=["exported_at_utc","source_file","input_hash","total_points","pct_U","count_T","count_C","count_B","count_G","count_R","count_L","count_U","priority","nn_mode"],r=[s.exported_at_utc,csvCell(s.source_file),s.input_hash,s.total_points,s.pct_U,s.counts.T,s.counts.C,s.counts.B,s.counts.G,s.counts.R,s.counts.L,s.counts.U,csvCell(s.priority.join("->")),s.nn_mode],name=`${baseName(state.sourceName)}_summary.csv`;download(name,`${h.join(",")}\n${r.join(",")}`,"text/csv;charset=utf-8");setStatus("globalStatus",`Exported ${name}`,"ok");}
+function exportSummaryJSON(){const s=summaryObj(),name=`${baseName(state.sourceName)}_summary.json`;download(name,JSON.stringify(s,null,2),"application/json;charset=utf-8");setStatus("globalStatus",`Exported ${name}`,"ok");}
+function exportSymbolCSV(){const act=activePairs({vis:false,source:"pairs"}),lines=["n,orig_n,category"];for(const p of act)lines.push(`${p.n},${p.orig_n},${p.category}`);const name=`${baseName(state.sourceName)}_symbolic_sequence.csv`;download(name,lines.join("\n"),"text/csv;charset=utf-8");setStatus("globalStatus",`Exported ${name}`,"ok");}
+function exportSymbolTXT(){const act=activePairs({vis:false,source:"pairs"}),chain=act.map(p=>p.category).join(""),name=`${baseName(state.sourceName)}_symbolic_sequence.txt`;download(name,[`source_file=${state.sourceName}`,`input_hash=${state.inputHash}`,`timestamp_utc=${nowIso()}`,`length=${chain.length}`,chain].join("\n"),"text/plain;charset=utf-8");setStatus("globalStatus",`Exported ${name}`,"ok");}
+function computeWindowIndices(){
+  readWindowSettings();
+  if(!state.pairs.length){setStatus("windowStatus","There are no classified pairs to analyze.","warn");return;}
+  const baseCount=state.windowSettings.useActiveRange?activePairs({vis:false,source:"pairs"}).length:state.pairs.length;
+  state.windowMetrics=computeWindowTemporalMetrics(state.pairs,state.windowSettings.windowMin,state.windowSettings.stepMin,state.windowSettings.useActiveRange,config.windowTemporal);
+  state.selectedWindow=null;
+  renderWindowTemporalMetricsTable();
+  renderWindowSegmentSummary(state.windowMetrics,config.windowTemporal);
+  const summary=computeWindowSegmentSummary(state.windowMetrics,config.windowTemporal);
+  const uninterpretableCount=state.windowMetrics.filter(r=>!r.is_interpretable).length;
+  const interpretableCount=state.windowMetrics.length-uninterpretableCount;
+  setStatus("windowStatus",`Calculated windows: ${state.windowMetrics.length.toLocaleString("en-US")} | interpretables: ${interpretableCount.toLocaleString("en-US")} | low interpretability: ${uninterpretableCount.toLocaleString("en-US")} | overall label: ${summary.segment_state} | T global: ${summary.segment_t_context_label} (${fmtPctMaybe(summary.segment_t_burden,1)}) | duration: ${fmt(state.windowSettings.windowMin,2)} min | step: ${fmt(state.windowSettings.stepMin,2)} min | total analyzed points: ${baseCount.toLocaleString("en-US")}`,state.windowMetrics.length?"ok":"warn");
+}
+function applySelectedWindowToFilter(){
+  if(!state.selectedWindow){setStatus("windowStatus","Select a window row first.","warn");return;}
+  applyWindowRange(state.selectedWindow.start_s,state.selectedWindow.end_s);
+  setStatus("windowStatus","Time filter applied from the selected window.","ok");
+}
+
+function movingAverage(values,windowSize){
+  const size=Math.max(1,Math.round(windowSize));
+  const left=Math.floor((size-1)/2),right=Math.ceil((size-1)/2);
+  return values.map((_,idx)=>{
+    const start=Math.max(0,idx-left),end=Math.min(values.length-1,idx+right);
+    let acc=0,n=0;
+    for(let i=start;i<=end;i++){acc+=values[i];n++;}
+    return n?acc/n:0;
+  });
+}
+function findRunStart(items,fromIndex,runLength,predicate){
+  for(let i=fromIndex;i<=items.length-runLength;i++){if(hasBinRun(items,i,runLength,predicate))return i;}
+  return-1;
+}
+function hasBinRun(items,start,runLength,predicate){
+  for(let i=0;i<runLength;i++){if(!predicate(items[start+i]))return false;}
+  return true;
+}
+function inHalfOpenBin(value,lo,hi,inclusiveUpper){return inclusiveUpper?value>=lo&&value<=hi+1e-9:value>=lo&&value<hi;}
+function findFirstSegmentDataBinIndex(bins,startIdx,endIdx){
+  for(let i=startIdx;i<=endIdx;i++){if(bins[i].n_total>0)return i;}
+  return-1;
+}
+function maxValue(values){let out=-Infinity;values.forEach(value=>{if(Number.isFinite(value)&&value>out)out=value;});return out===-Infinity?0:out;}
+function roundTo(value,decimals){const p=10**decimals;return Math.round(value*p)/p;}
+
+function bind(){
+  $("btnToggleDeveloperMode")?.addEventListener("click",()=>setDeveloperMode(!document.body.classList.contains("dev-mode")));
+  $("fileInput").addEventListener("change",async(ev)=>{const f=ev.target.files&&ev.target.files[0];if(!f)return;try{const t=await f.text();state.rawText=t;state.sourceName=f.name;rebuildFromRaw();}catch(e){setStatus("globalStatus",`Error reading file: ${e.message}`,"bad");}});
+  $("btnProcess").addEventListener("click",()=>{if(!state.rawText||!state.rawText.trim()){setStatus("globalStatus","Load a file before processing.","warn");return;}rebuildFromRaw();});
+  $("btnApplyRules").addEventListener("click",()=>{readRules();reclassifyRender();});
+  $("btnResetRules").addEventListener("click",()=>{config.rules=deep(DEFAULT_CONFIG.rules);config.priority=DEFAULT_CONFIG.priority.slice();state.cAutoMeta=null;state.cAutoValidation45=null;refreshActiveRobustCState();gMinAuto=true;$("b_auto_from_c").checked=!!config.rules.B.auto_from_c;syncBRangeFromC(false);syncUI();setBAutoUI();if(state.basePairs.length>0)applyAutoCRangeFromBasePairs(false);else{state.cAutoMeta=null;state.cAutoValidation45=null;refreshActiveRobustCState();}reclassifyRender();});
+  $("btnApplyAutoC").addEventListener("click",()=>{readAutoCSettings();if(!state.basePairs.length){state.cAutoMeta=null;state.cAutoValidation45=null;refreshActiveRobustCState();renderAll();setStatus("autoCStatus","There are no base pairs for recalculating Auto-C.","warn");return;}applyAutoCRangeFromBasePairs(false);classifyAllPairs();invalidateWindowMetrics("Window indices are outdated; recalculate.");renderAll();setStatus("globalStatus","Auto-C recalculated with main and fixed 45% validation profiles.","ok");});
+  $("btnResetAutoC").addEventListener("click",()=>{config.autoC=deep(DEFAULT_CONFIG.autoC);syncAutoCUI();if(!state.basePairs.length){state.cAutoMeta=null;state.cAutoValidation45=null;refreshActiveRobustCState();renderAll();return;}applyAutoCRangeFromBasePairs(false);classifyAllPairs();invalidateWindowMetrics("Window indices are outdated; recalculate.");renderAll();setStatus("globalStatus","Auto-C 2.0 defaults restored and both profiles recalculated.","ok");});
+  $("btnUseGMinSuggest")?.addEventListener("click",()=>{gMinAuto=true;refreshGMinSuggestedUI(true,true);});
+  $("g_min").addEventListener("input",()=>{gMinAuto=gMinSuggested!=null&&String($("g_min").value)===String(gMinSuggested);});
+  $("g_min").addEventListener("change",()=>{gMinAuto=gMinSuggested!=null&&String($("g_min").value)===String(gMinSuggested);});
+  $("c_lo").addEventListener("input",()=>syncTFastMinFromC(true,true));
+  $("c_lo").addEventListener("change",()=>syncTFastMinFromC(true,true));
+  $("c_lo").addEventListener("input",()=>syncRYMinFromC(true,true));
+  $("c_lo").addEventListener("change",()=>syncRYMinFromC(true,true));
+  $("c_hi").addEventListener("input",()=>syncLGuardMinFromC(true,true));
+  $("c_hi").addEventListener("change",()=>syncLGuardMinFromC(true,true));
+  ["c_lo","c_hi"].forEach(id=>{$(id).addEventListener("input",()=>refreshGMinSuggestedUI(true,gMinAuto));$(id).addEventListener("change",()=>refreshGMinSuggestedUI(true,gMinAuto));});
+  ["autoC_x_search_min","autoC_x_search_max","autoC_jump_ratio_min","autoC_x_step","autoC_smoothing_bins","autoC_threshold_on","autoC_min_run_bins","autoC_start_peak_fraction","autoC_end_peak_fraction","autoC_end_support_fraction","autoC_min_support_candidates","autoC_min_support_total"].forEach(id=>$(id).addEventListener("change",()=>{readAutoCSettings();if(!state.basePairs.length){renderAll();return;}applyAutoCRangeFromBasePairs(false);classifyAllPairs();invalidateWindowMetrics("Window indices are outdated; recalculate.");renderAll();setStatus("globalStatus","Auto-C updated from the 1D profile parameters.","ok");}));
+  $("b_auto_from_c").addEventListener("change",()=>{config.rules.B.auto_from_c=$("b_auto_from_c").checked;setBAutoUI();if($("b_auto_from_c").checked)readRules();});
+  $("priorityList").addEventListener("click",ev=>{const b=ev.target.closest("button[data-act]");if(!b)return;const i=Number(b.getAttribute("data-i")),a=b.getAttribute("data-act");if(!Number.isInteger(i))return;const arr=config.priority.slice();if(a==="up"&&i>0)[arr[i-1],arr[i]]=[arr[i],arr[i-1]];else if(a==="down"&&i<arr.length-1)[arr[i+1],arr[i]]=[arr[i],arr[i+1]];else return;config.priority=arr;renderPriority();reclassifyRender();});
+  $("catToggles").addEventListener("change",()=>{readVisual();renderPoincare();});
+  ["pointSize","pointOpacity","axisPct"].forEach(id=>$(id).addEventListener("input",()=>{readVisual();renderPoincare();}));
+  ["xMode","axisMode","axisMax","showGuideRatios","colorTacByCat","sampleLimit"].forEach(id=>$(id).addEventListener("change",()=>{const prev=config.visual.xMode;readVisual();if(id==="xMode"&&prev!==config.visual.xMode)state.rangeFilter=null;renderAll();}));
+  $("btnRefreshView").addEventListener("click",()=>{readVisual();renderAll();});
+  $("btnClearRange").addEventListener("click",()=>{state.rangeFilter=null;renderAll();});
+  $("btnResetZoom").addEventListener("click",()=>{try{const axis=getPoincareAxisMax(activePairs({vis:false,source:"pairs"}));Plotly.relayout("tachogram",{"xaxis.autorange":true,"yaxis.autorange":true});Plotly.relayout("poincare",{"xaxis.range":[0,axis],"yaxis.range":[0,axis]});}catch(_){}});
+
+  $("btnExportPoints").addEventListener("click",exportCSVPoints);$("btnExportConfig").addEventListener("click",exportConfigJSON);$("btnExportSummaryCSV").addEventListener("click",exportSummaryCSV);$("btnExportSummaryJSON").addEventListener("click",exportSummaryJSON);$("btnExportSymbolCSV").addEventListener("click",exportSymbolCSV);$("btnExportSymbolTXT").addEventListener("click",exportSymbolTXT);
+  $("autoCProfileDetails")?.addEventListener("toggle",()=>{if($("autoCProfileDetails").open){requestAnimationFrame(()=>{renderAutoCProfile();try{Plotly.Plots.resize($("autoCProfile"));}catch(_){}});}});
+  setBAutoUI();
+}
+
+function init(){config=deep(DEFAULT_CONFIG);config.autoC=normalizeAutoCConfig(config.autoC);config.rules.C=normalizeCRule(config.rules.C);gMinAuto=true;syncBRangeFromC(false);syncUI();bind();setDeveloperMode(false);renderAll();}
+window.addEventListener("DOMContentLoaded",init);
+</script>
+</body>
+</html>
